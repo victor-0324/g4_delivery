@@ -1,0 +1,28 @@
+version: "3.8"
+
+services:
+  app:
+    image: g-krypta/delivery-app:latest
+    env_file:
+      - .env
+    command: >
+      gunicorn wsgi:app
+        --bind 0.0.0.0:5000
+        --workers 1
+        --timeout 180
+
+    labels:
+      - "traefik.enable=true"
+
+      # --- HTTPS somente ---
+      - "traefik.http.routers.delivery.rule=Host(`g4mobileltda.g4mobile.com`)"
+      - "traefik.http.routers.delivery.entrypoints=websecure"
+      - "traefik.http.routers.delivery.tls.certresolver=leresolver"
+      - "traefik.http.services.delivery.loadbalancer.server.port=5000"
+
+    networks:
+      - traefik_public
+
+networks:
+  traefik_public:
+    external: true

@@ -1,0 +1,347 @@
+from flask import (
+    Blueprint,
+    render_template,
+    session,
+    jsonify,
+    request,
+    redirect,
+    url_for,
+    flash,
+)
+import requests
+from flask_login import login_required, login_user
+from ..delivery.consultas import ConsultasDelivery
+# from ..enderecos.google_api import ConsultasGoogleAPI
+from src.database.querys import UserQuerys
+from .src.functions import verificar_usuarios
+
+delivery_app = Blueprint(
+    "delivery_app",
+    __name__,
+    url_prefix="/g4delivery/",
+    template_folder="templates",
+    static_folder="static",
+)
+
+
+def public_endpoint(function):
+    """Decorator for public routes"""
+    function.is_public = True
+    return function
+
+
+@login_required
+@delivery_app.route("/altera_password", methods=["GET", "POST"])
+def altera_password():
+    """Altera a senha do usuário."""
+    session_user = session.get("user")
+    print(f"Usuário na sessão: {session_user}")
+    user = UserQuerys.delivery_busca_cpf(session_user["cpf"])
+    if not user:
+        return redirect(url_for("delivery_app.login"))
+
+    if request.method == "POST":
+        nova_senha = request.form["new_password"]
+        confirma_senha = request.form["confirm_password"]
+
+        if nova_senha != confirma_senha:
+            flash("Senhas não coincidem.")
+            return redirect(url_for("delivery_app.altera_password"))
+
+        try:
+            UserQuerys.altera_password(user.id, nova_senha)
+            flash("Senha atualizada com sucesso.")
+            return redirect(url_for("delivery_app.login"))
+        except ValueError as e:
+            flash(str(e))
+        return redirect(url_for("delivery_app.altera_password"))
+
+    return render_template("pages/delivery/altera_password.html", user=user)
+
+
+@login_required
+@delivery_app.route("/", methods=["GET"])
+def painel_empresa():
+    """panel das empresas"""
+    user = session.get("user")
+    if user["role"] != "empresa_delivery":
+        return redirect(url_for("delivery_app.login"))
+
+    empresa = ConsultasDelivery.busca_empresas(user["nome"])
+
+    todos_pedidos = ConsultasDelivery.busca_pedidos_empresa(empresa["id"])
+
+    return render_template(
+        "pages/delivery/painel_empresa.html",
+        user=user,
+        pedidos=todos_pedidos,
+        empresa=empresa,
+    )
+
+
+@public_endpoint
+@delivery_app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        login_input = request.form.get("login")
+        password = request.form.get("password")
+
+        print(f"Login informado: {login_input}")
+
+        user = UserQuerys.delivery_busca_email_ou_cpf(login_input)
+
+        print(f"Usuário encontrado: {user.name if user else 'Nenhum'}")
+
+        if not user or not user.check_password(password):
+            flash("Credenciais inválidas.")
+            return redirect(url_for("delivery_app.login"))
+
+        # Autentica
+        login_user(user)
+        session["user"] = user.to_dict()
+
+        # Redireciona conforme role
+        if user.alterar_senha:
+            return redirect(url_for("delivery_app.altera_password"))
+
+        # Fluxos bem definidos
+        if user.role == "admin_delivery":
+            return redirect(url_for("delivery_app.administrador"))
+        elif user.role == "motoboy":
+            return redirect(url_for("delivery_app.entregadores"))
+        elif user.role == "empresa_delivery":
+            return redirect(url_for("delivery_app.painel_empresa"))
+        else:
+            flash("Tipo de usuário desconhecido.")
+            return redirect(url_for("delivery_app.login"))
+
+    return render_template("pages/delivery/login_delivery.html")
+
+
+@delivery_app.route("/gerar_pix")
+def gerar_pix():
+    """Gera um pix para o pedido."""
+    url = "https://api-sandbox.asaas.com/v3/pix/addressKeys"
+
+    payload = { "type": "EVP" }
+    headers = {
+        "accept": "application/json",
+        "content-type": "application/json"
+    }
+
+    response = request.post(url, json=payload, headers=headers)
+
+    print(response.text)
+
+    return render_template("pages/delivery/gerar_pix.html")
+
+
+@login_required
+@delivery_app.route("/entregadores", methods=["GET"])
+def entregadores():
+    """Render the main page for the web application."""
+    user = session.get("user")
+    if user["role"] != "motoboy":
+        return redirect(url_for("delivery_app.login"))
+
+    return render_template("pages/delivery/entregadores.html", user=user)
+
+
+@public_endpoint
+@delivery_app.route("/verificar_numero", methods=["POST"])
+def verificar_usuario():
+    """verifica o tipo de usuario que está mandando mensagem."""
+    data = request.get_json()
+    telefone = data.get("telefone")
+    usuario = verificar_usuarios(telefone)
+    return jsonify(usuario)
+
+
+@login_required
+@delivery_app.route("/cadastrar_empresa", methods=["GET", "POST"])
+def cadastrar_empresa():
+    """cadastra empresa no banco de dados."""
+    user = session.get("user")
+
+    if request.method == "POST":
+        data = request.form
+        print(data)
+        nome = data.get("nome")
+        email = data.get("email")
+        telefone = data.get("telefone")
+        endereco = data.get("endereco")
+        password = "Empres@-senhag4"
+        cpf = None
+        role = "empresa_delivery"
+
+        # Validação básica
+        if not nome or not telefone or not endereco:
+            flash("Preencha todos os campos obrigatórios.", "danger")
+            return redirect(request.url)
+
+        try:
+            # lat, lon = ConsultasGoogleAPI.lat_lon(endereco)
+            # Cria o usuário
+            UserQuerys.create_user_delivery(nome, email, cpf, password, role)
+            # Registra na tabela própria
+            # ConsultasDelivery.cadastrar_empresa(nome, telefone, endereco, lat, lon)
+            flash("Empresa cadastrada com sucesso!", "success")
+            return redirect(url_for("delivery_app.painel_empresa"))
+
+        except Exception as e:
+            print("🔥 ERRO AO CADASTRAR:", e)
+            flash("Erro ao cadastrar. Verifique os dados.", "danger")
+            return redirect(request.url)
+
+    return render_template("pages/delivery/cadastrar_empresa.html", user=user)
+
+
+@login_required
+@delivery_app.route("/cadastrar_motoboy", methods=["GET", "POST"])
+def cadastrar_motoboy():
+    """cadastra motoboy no banco de dados."""
+    user = session.get("user")
+
+    if request.method == "POST":
+        data = request.form
+        print(data)
+        nome = data.get("nome")
+        telefone = data.get("telefone")
+        cpf = data.get("CPF")
+        placa = data.get("placa")
+        password = "Mot0r!stA-senha"
+        role = data.get("role")
+        email = None
+
+        # Validação básica
+        if not nome or not cpf or not telefone:
+            flash("Preencha todos os campos obrigatórios.", "danger")
+            return redirect(request.url)
+
+        # Valida CPF tamanho (exemplo)
+        if len(cpf.replace(".", "").replace("-", "")) != 11:
+            flash("CPF inválido.", "danger")
+            return redirect(request.url)
+
+        try:
+            # Cria o usuário
+            UserQuerys.create_user_delivery(nome, email, cpf, password, role)
+
+            # Se for motoboy, registra na tabela própria
+            if role == "motoboy":
+                ConsultasDelivery.cadastrar_motoboy(nome, telefone, cpf, placa)
+                flash("Motoboy cadastrado com sucesso!", "success")
+                return redirect(url_for("delivery_app.cadastrar_motoboy"))
+
+            elif role == "admin_delivery":
+                flash("Administrador criado com sucesso!", "success")
+                return redirect(url_for("delivery_app.cadastrar_empresa"))
+
+            else:
+                flash("Tipo de usuário inválido.", "warning")
+                return redirect(request.url)
+
+        except Exception as e:
+            print("🔥 ERRO AO CADASTRAR:", e)
+            flash("Erro ao cadastrar. Verifique os dados.", "danger")
+            return redirect(request.url)
+
+    return render_template("pages/delivery/cadastrar_motoboy.html", user=user)
+
+
+@public_endpoint
+@delivery_app.route("/cadastrar_cliente", methods=["POST"])
+def cadastrar_cliente():
+    """Cadastra um cliente no banco de dados"""
+    data = request.get_json()
+    telefone = data.get("telefone")
+    nome = data.get("nome")
+    status = "pedindo"
+    cliente = ConsultasDelivery.cadastrar_cliente(nome, telefone, status)
+    return jsonify(cliente)
+
+
+@public_endpoint
+@delivery_app.route("/pedir_frete", methods=["POST"])
+def pedir_frete():
+    """Pedir um frete."""
+
+    data = request.get_json()
+    telefone = data.get("telefone")
+    valor = data.get("valor")
+    retirada_lat = data.get("retirada_lat")
+    retirada_lon = data.get("retirada_lon")
+    entrega_lat = data.get("entrega_lat")
+    entrega_lon = data.get("entrega_lon")
+    usuario = data.get("usuario")
+    via = "WhatsApp"
+
+    frete_id = ConsultasDelivery.Contabilizar(telefone, valor, retirada_lat, retirada_lon, entrega_lat, entrega_lon, usuario, via)
+
+    motoboy = ConsultasDelivery.buscar_motoboy_frete(frete_id)
+
+    return jsonify(motoboy)
+
+
+@public_endpoint
+@delivery_app.route("/aceitar_frete", methods=["POST"])
+def aceitar_frete():
+    """Aceitar um frete."""
+
+    data = request.get_json()
+    telefone = data.get("telefone")
+    frete_id = data.get("frete_id")
+    print(data)
+    frete = ConsultasDelivery.aceitar_frete(telefone, frete_id)
+    if not frete:
+        return jsonify({"erro": "Frete não encontrado"}), 400
+
+    frete_telefone = frete["telefone"]
+    usuario = verificar_usuarios(frete_telefone)
+    print(f"Usuário associado ao frete: {usuario}")
+    if usuario["tipo_usuario"] == "empresa":
+        empresa = ConsultasDelivery.retirar_credito_empresa(
+            telefone=frete["telefone"], valor=frete["valor"]
+        )
+        if isinstance(empresa, dict) and empresa.get("erro"):
+            return jsonify({"erro": empresa["erro"]}), 400
+
+        return jsonify({"sucesso": True, "usuario": empresa})
+    return jsonify({"sucesso": True, "usuario": usuario})
+
+
+@public_endpoint
+@delivery_app.route("/recusar_frete", methods=["POST"])
+def recusar_frete():
+    data = request.get_json()
+    telefone = data.get("telefone")
+    frete_id = data.get("frete_id")
+    ConsultasDelivery.recusar_frete(telefone, frete_id)
+    motoboy = ConsultasDelivery.passar_frete(frete_id)
+
+    if motoboy is None:
+        return jsonify({"mensagem": "Nenhum motoboy livre no momento."}), 200
+
+    return jsonify({"motoboy": motoboy, "frete_id": frete_id})
+
+
+@public_endpoint
+@delivery_app.route("/colocar_livre", methods=["POST"])
+def colocar_livre():
+    data = request.get_json()
+    telefone = data.get("telefone")
+    lat = data.get("lat")
+    lon = data.get("lon")
+    ConsultasDelivery.coloca_livre(telefone, lat, lon)
+
+    return jsonify({"sucesso": "sucesso"})
+
+
+@public_endpoint
+@delivery_app.route("/atualizar_status", methods=["POST"])
+def atualizar_status():
+    data_json = request.get_json()
+    telefone = data_json.get("telefone")
+    status = data_json.get("status")
+    ConsultasDelivery.atualizar_status(telefone, status)
+    return jsonify({"response": "Status atualizado com sucesso"}), 200
