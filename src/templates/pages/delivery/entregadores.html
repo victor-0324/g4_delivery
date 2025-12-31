@@ -1,0 +1,127 @@
+{% extends 'partials/base.html' %}
+{% block title %} Invoice List {% endblock title %}
+
+{% block extra_css %}
+
+<!-- Sweet Alert css-->
+<link href="{{url_for('static' ,filename='libs/sweetalert2/sweetalert2.min.css')}}" rel="stylesheet" type="text/css">
+
+{% endblock extra_css %}
+
+{% block content %}
+<!-- start page title -->
+<div class="row">
+    <div class="col-xl-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="row g-4">
+                    <!-- Valor Total das Corridas -->
+
+                    <div class="col-lg-3 col-sm-6 border-end-lg">
+                        <div>
+                            <div class="d-flex align-items-center gap-2 mb-4">
+                                <div class="avatar-xs flex-shrink-0">
+                                    <div class="avatar-title bg-body-secondary text-success border border-success-subtle rounded-circle">
+                                        <i class="bi bi-cash-coin"></i>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <p class="text-muted mb-0">Total de Corridas</p>
+                                </div>
+                            </div>
+                            <h3 class="mb-0">
+                                <span id="total_corridas" class="counter-value" data-target="0">0</span>
+                            </h3>
+                        </div>
+                    </div>
+                    <!-- Receita Bruta -->
+                    <div class="col-lg-3 col-sm-6 border-end-sm">
+                        <div>
+                            <div class="d-flex align-items-center gap-2 mb-4">
+                                <div class="avatar-xs flex-shrink-0">
+                                    <div class="avatar-title bg-body-secondary text-primary border border-primary-subtle rounded-circle">
+                                        <i class="bi bi-graph-up"></i>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <p class="text-muted mb-0">Receita Bruta R$</p>
+                                </div>
+                            </div>
+                            <h3 class="mb-0">
+                                <span id="receita_bruta">R$ 0,00</span>
+                            </h3>
+                        </div>
+                    </div>
+                    <!-- Comissão -->
+                    <div class="col-lg-3 col-sm-6 border-end-sm">
+                        <div>
+                            <div class="d-flex align-items-center gap-2 mb-4">
+                                <div class="avatar-xs flex-shrink-0">
+                                    <div class="avatar-title bg-body-secondary text-warning border border-warning-subtle rounded-circle">
+                                        <i class="bi bi-percent"></i>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <p class="text-muted mb-0">Comissão</p>
+                                </div>
+                            </div>
+                            <h3 class="mb-0">
+                                <span id="comissao">R$ 0,00</span>
+                            </h3>
+                        </div>
+                    </div>
+                    <!-- Receita Líquida -->
+                    <div class="col-lg-3 col-sm-6">
+                        <div>
+                            <div class="d-flex align-items-center gap-2 mb-4">
+                                <div class="avatar-xs flex-shrink-0">
+                                    <div class="avatar-title bg-body-secondary text-success border border-success-subtle rounded-circle">
+                                        <i class="bi bi-wallet2"></i>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <p class="text-muted mb-0">Receita Líquida R$</p>
+                                </div>
+                            </div>
+                            <h3 class="mb-0">
+                                <span id="receita_liquida">R$ 0,00</span>
+                            </h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div><!--end card-->
+    </div><!--end col-->
+</div>
+
+<!--end row-->
+{% endblock content %}
+
+{% block extra_content %}
+
+<!-- Grids in modals -->
+
+
+{% endblock extra_content %}
+
+
+{% block extra_js %}
+
+<!-- CSS do Flatpickr -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
+<!-- JS do Flatpickr -->
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+<!-- Tradução para PT-BR -->
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
+<!-- invoice list-->
+<script src="{{url_for('static' ,filename='js/pages/invoice-list.init.js')}}"></script>
+<script src="{{ url_for('static', filename='ajax/detalhes.js') }}"></script>
+<script src="{{url_for('static', filename='libs/apexcharts/apexcharts.min.js')}}"></script>
+
+
+<script src="{{url_for('static', filename='js/pages/dashboard-real-estate.init.js')}}"></script>
+
+
+{% endblock extra_js %}

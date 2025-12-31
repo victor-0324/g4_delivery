@@ -1,0 +1,140 @@
+{% extends 'partials/base.html' %}
+
+{% block title %}Empresas cadastradas {% endblock title %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body p-0">
+        <table class="table align-middle table-nowrap mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th scope="col">Empresa</th>
+                    <th scope="col">Telefone</th>
+                    <th scope="col">Endereço</th>
+                    <th scope="col">Crédito</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Ações</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for emp in empresas %}
+
+                <tr>
+                    <td>
+                        <strong>{{ emp.nome }}</strong>
+                    </td>
+
+                    <td>{{ emp.telefone }}</td>
+
+                    <td>{{ emp.endereco }}</td>
+
+                    <td>R$ {{ "%.2f"|format(emp.credito) }}</td>
+
+                    <td>
+                        {% if emp.status == "ativo" %}
+                            <a href="javascript:void(0);" class="link-success">Ativo</a>
+                        {% else %}
+                            <a href="javascript:void(0);" class="link-warning">Pendente</a>
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        <!-- Barra de progresso só pra estilo
+                        <div class="progress progress-sm mb-2" style="width: 120px;">
+                            <div class="progress-bar bg-success" role="progressbar"
+                                style="width: 100%"></div>
+                        </div>-->
+                        <button class="btn btn-primary btn-sm"
+                            onclick="abrirModalEditar(
+                                {{ emp.id }},
+                                '{{ emp.nome }}',
+                                '{{ emp.telefone }}',
+                                '{{ emp.endereco }}',
+                                {{ emp.credito }}
+                            )">
+                            Editar
+                        </button>
+                    </td>
+                </tr>
+
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock content %}
+
+{% block extra_content %}
+
+
+<div class="modal fade" id="modalEditarEmpresa" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{{ url_for('admin_app.delivery') }}">
+                <div class="modal-header">
+                    <h5 class="modal-title">Editar Empresa</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <input type="hidden" name="empresa_id" id="editEmpresaId">
+
+                    <div class="mb-3">
+                        <label class="form-label">Nome</label>
+                        <input type="text" class="form-control" name="nome" id="editNome" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Telefone</label>
+                        <input type="text" class="form-control" name="telefone" id="editTelefone" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Endereço</label>
+                        <input type="text" class="form-control" name="endereco" id="editEndereco">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Crédito</label>
+                        <input type="number" step="0.01" class="form-control" name="credito" id="editCredito">
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">Salvar Alterações</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+{% endblock extra_content %}
+
+{% block extra_js %}
+  <!-- password create init js-->
+
+<script>
+   function abrirModalEditar(id, nome, telefone, endereco, credito) {
+        document.getElementById("editEmpresaId").value = id;
+        document.getElementById("editNome").value = nome;
+        document.getElementById("editTelefone").value = telefone;
+        document.getElementById("editEndereco").value = endereco;
+        document.getElementById("editCredito").value = credito;
+
+        const modal = new bootstrap.Modal(document.getElementById("modalEditarEmpresa"));
+        modal.show();
+    }
+
+    function abrirModalCredito(id, nome) {
+        document.getElementById("empresa_id").value = id;
+        document.getElementById("empresa_nome").innerText = nome;
+        const modal = new bootstrap.Modal(document.getElementById("modalCredito"));
+        modal.show();
+        window.reload();
+    }
+</script>
+{% endblock extra_js %}

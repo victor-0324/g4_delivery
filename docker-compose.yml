@@ -15,10 +15,10 @@ services:
       - "traefik.enable=true"
 
       # --- HTTPS somente ---
-      - "traefik.http.routers.delivery.rule=Host(`g4mobileltda.g4mobile.com`)"
-      - "traefik.http.routers.delivery.entrypoints=websecure"
-      - "traefik.http.routers.delivery.tls.certresolver=leresolver"
-      - "traefik.http.services.delivery.loadbalancer.server.port=5000"
+      - "traefik.http.routers.delivery-app.rule=Host(`delivery.g4mobile.com`)"
+      - "traefik.http.routers.delivery-app.entrypoints=websecure"
+      - "traefik.http.routers.delivery-app.tls.certresolver=leresolver"
+      - "traefik.http.services.delivery-app.loadbalancer.server.port=5000"
 
     networks:
       - traefik_public

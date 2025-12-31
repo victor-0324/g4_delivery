@@ -11,6 +11,7 @@ from flask import (
 import requests
 from flask_login import login_required, login_user
 from ..delivery.consultas import ConsultasDelivery
+
 # from ..enderecos.google_api import ConsultasGoogleAPI
 from src.database.querys import UserQuerys
 from .src.functions import verificar_usuarios
@@ -31,41 +32,12 @@ def public_endpoint(function):
 
 
 @login_required
-@delivery_app.route("/altera_password", methods=["GET", "POST"])
-def altera_password():
-    """Altera a senha do usuário."""
-    session_user = session.get("user")
-    print(f"Usuário na sessão: {session_user}")
-    user = UserQuerys.delivery_busca_cpf(session_user["cpf"])
-    if not user:
-        return redirect(url_for("delivery_app.login"))
-
-    if request.method == "POST":
-        nova_senha = request.form["new_password"]
-        confirma_senha = request.form["confirm_password"]
-
-        if nova_senha != confirma_senha:
-            flash("Senhas não coincidem.")
-            return redirect(url_for("delivery_app.altera_password"))
-
-        try:
-            UserQuerys.altera_password(user.id, nova_senha)
-            flash("Senha atualizada com sucesso.")
-            return redirect(url_for("delivery_app.login"))
-        except ValueError as e:
-            flash(str(e))
-        return redirect(url_for("delivery_app.altera_password"))
-
-    return render_template("pages/delivery/altera_password.html", user=user)
-
-
-@login_required
 @delivery_app.route("/", methods=["GET"])
 def painel_empresa():
     """panel das empresas"""
     user = session.get("user")
     if user["role"] != "empresa_delivery":
-        return redirect(url_for("delivery_app.login"))
+        return redirect(url_for("auth.login"))
 
     empresa = ConsultasDelivery.busca_empresas(user["nome"])
 
@@ -79,55 +51,13 @@ def painel_empresa():
     )
 
 
-@public_endpoint
-@delivery_app.route("/login", methods=["GET", "POST"])
-def login():
-    if request.method == "POST":
-        login_input = request.form.get("login")
-        password = request.form.get("password")
-
-        print(f"Login informado: {login_input}")
-
-        user = UserQuerys.delivery_busca_email_ou_cpf(login_input)
-
-        print(f"Usuário encontrado: {user.name if user else 'Nenhum'}")
-
-        if not user or not user.check_password(password):
-            flash("Credenciais inválidas.")
-            return redirect(url_for("delivery_app.login"))
-
-        # Autentica
-        login_user(user)
-        session["user"] = user.to_dict()
-
-        # Redireciona conforme role
-        if user.alterar_senha:
-            return redirect(url_for("delivery_app.altera_password"))
-
-        # Fluxos bem definidos
-        if user.role == "admin_delivery":
-            return redirect(url_for("delivery_app.administrador"))
-        elif user.role == "motoboy":
-            return redirect(url_for("delivery_app.entregadores"))
-        elif user.role == "empresa_delivery":
-            return redirect(url_for("delivery_app.painel_empresa"))
-        else:
-            flash("Tipo de usuário desconhecido.")
-            return redirect(url_for("delivery_app.login"))
-
-    return render_template("pages/delivery/login_delivery.html")
-
-
 @delivery_app.route("/gerar_pix")
 def gerar_pix():
     """Gera um pix para o pedido."""
     url = "https://api-sandbox.asaas.com/v3/pix/addressKeys"
 
-    payload = { "type": "EVP" }
-    headers = {
-        "accept": "application/json",
-        "content-type": "application/json"
-    }
+    payload = {"type": "EVP"}
+    headers = {"accept": "application/json", "content-type": "application/json"}
 
     response = request.post(url, json=payload, headers=headers)
 
@@ -142,7 +72,7 @@ def entregadores():
     """Render the main page for the web application."""
     user = session.get("user")
     if user["role"] != "motoboy":
-        return redirect(url_for("delivery_app.login"))
+        return redirect(url_for("auth.login"))
 
     return render_template("pages/delivery/entregadores.html", user=user)
 
@@ -276,7 +206,16 @@ def pedir_frete():
     usuario = data.get("usuario")
     via = "WhatsApp"
 
-    frete_id = ConsultasDelivery.Contabilizar(telefone, valor, retirada_lat, retirada_lon, entrega_lat, entrega_lon, usuario, via)
+    frete_id = ConsultasDelivery.Contabilizar(
+        telefone,
+        valor,
+        retirada_lat,
+        retirada_lon,
+        entrega_lat,
+        entrega_lon,
+        usuario,
+        via,
+    )
 
     motoboy = ConsultasDelivery.buscar_motoboy_frete(frete_id)
 

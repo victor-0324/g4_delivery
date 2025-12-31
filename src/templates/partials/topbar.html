@@ -1,0 +1,141 @@
+{% block header %}
+
+<header id="page-topbar">
+    <div class="layout-width">
+        <div class="navbar-header">
+            <div class="d-flex">
+                <!-- LOGO
+                <div class="navbar-brand-box horizontal-logo">
+                    <a href="#" class="logo logo-dark">
+                        <span class="logo-sm">
+                            <img src="{{url_for('static' ,filename='login/images/icons/g4ico.ico')}}" alt="" height="22">
+                        </span>
+                        <span class="logo-lg">
+                            <img src="{{url_for('static' ,filename='login/images/icons/g4ico.ico')}}" alt="" height="22">
+                        </span>
+                    </a>
+                    <a href="#" class="logo logo-light">
+                        <span class="logo-sm">
+                            <img src="{{url_for('static' ,filename='login/images/icons/g4ico.ico')}}" alt="" height="22">
+                        </span>
+                        <span class="logo-lg">
+                            <img src="{{url_for('static' ,filename='login/images/icons/g4ico.ico')}}" alt="" height="22">
+                        </span>
+                    </a>
+                </div>-->
+
+                <div class="dropdown topbar-head-dropdown ms-1 header-item">
+                    <button type="button" class="btn btn-icon btn-topbar btn-ghost-dark rounded-circle mode-layout" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class="bi bi-sun align-middle fs-3xl"></i>
+                    </button>
+                    <div class="dropdown-menu p-2 dropdown-menu-end" id="light-dark-mode">
+                        <a href="#!" class="dropdown-item" data-mode="light"><i class="bi bi-sun align-middle me-2"></i> Claro
+
+                        </a>
+                        <a href="#!" class="dropdown-item" data-mode="dark"><i class="bi bi-moon align-middle me-2"></i> Escuro </a>
+                        <a href="#!" class="dropdown-item" data-mode="auto"><i class="bi bi-moon-stars align-middle me-2"></i> Automatico </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex align-items-center">
+                <div class="dropdown ms-sm-3 header-item topbar-user">
+                    <button type="button" class="btn shadow-none" id="page-header-user-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <span class="d-flex align-items-center">
+                            <img class="rounded-circle header-profile-user" src="{{ url_for('static', filename='login/images/icons/g4ico.ico') }}" alt="Header Avatar">
+                            <span class="text-start ms-xl-2">
+                                <span class="d-none d-xl-inline-block ms-1 fw-medium user-name-text">{{ user.nome }}</span>
+                                {% set roles = {
+                                        "motorista": "Motorista",
+                                        "motoboy": "Motoboy",
+                                        "empresa_delivery": "Empresa",
+                                        "admin_delivery": "Admin",
+                                        "admin": "Admin"
+                                    } %}
+                                    <span class="d-none d-xl-block ms-1 fs-sm user-name-sub-text">
+                                        {{ roles.get(user.role, "Usuário") }}
+                                    </span>
+                            </span>
+                        </span>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end">
+                        <h6 class="dropdown-header">Bem vindo, {{ user.nome }}!</h6>
+                        <a class="dropdown-item" href="{% if user.role == 'motorista' %}/motoristas/faturamentos{% else %}/admin/{% endif %}">
+                            <i class="mdi mdi-account-circle text-muted fs-lg align-middle me-1"></i>
+                            <span class="align-middle">Inicio</span>
+                        </a>
+                         <!-- Divisor -->
+                        <div class="dropdown-divider"></div>
+
+                        <!-- Item exclusivo para admin -->
+                        {% if user.role == 'admin' %}
+
+                            <a class="dropdown-item" href="/admin/cadastrar">
+                                <i class="mdi mdi-account-plus text-muted fs-lg align-middle me-1"></i>
+                                <span class="align-middle">Cadastrar Motorista</span>
+                            </a>
+                            <a class="dropdown-item" href="/g4delivery/cadastrar_motoboy">
+                                <i class="mdi mdi-motorbike text-muted fs-lg align-middle me-1"></i>
+                                <span class="align-middle">Cadastrar Motoboy</span>
+                            </a>
+                            <a class="dropdown-item" href="/g4delivery/cadastrar_empresa">
+                                <i class="mdi mdi-store text-muted fs-lg align-middle me-1"></i>
+                                <span class="align-middle">Cadastrar Empresa</span>
+                            </a>
+                            <a class="dropdown-item" href="/admin/motoboys">
+                                <i class="mdi mdi-bike text-muted fs-lg align-middle me-1"></i>
+                                <span class="align-middle">Ver Motoboys</span>
+                            </a>
+                            <a class="dropdown-item" href="/admin/delivery">
+                                <i class="mdi mdi-storefront text-muted fs-lg align-middle me-1"></i>
+                                <span class="align-middle">Delivery </span>
+                            </a>
+                            {% if request.path == '/admin/' %}
+                                <a class="dropdown-item" href="/admin/valores" data-bs-toggle="modal" data-bs-target="#exampleModalFullscreenXxl">
+                                    <i class="mdi mdi-currency-usd text-muted fs-lg align-middle me-1"></i>
+                                    <span class="align-middle">Alterar valores</span>
+                                </a>
+                                 <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#modalFilaMotoristas">
+                                    <i class="mdi mdi-format-list-numbered text-muted fs-lg align-middle me-1"></i>
+                                    <span class="align-middle">Ver Fila de Motoristas</span>
+                                </a>
+                                <a class="dropdown-item" href="#" data-bs-toggle="modal"  aria-labelledby="modalValoresTitulo" data-bs-target="#exampleModalFullscreenXxlValores">
+                                    <i class="mdi mdi-map-marker-radius text-muted fs-lg align-middle me-1"></i>
+                                    <span class="align-middle">Cadastrar Bairros</span>
+                                </a>
+                            {% endif %}
+
+                            <a class="dropdown-item" href="/admin/fechamento_resumo">
+                                <i class="mdi mdi-file-chart text-muted fs-lg align-middle me-1"></i>
+                                <span class="align-middle">Fechamento</span>
+                            </a>
+
+                        <div class="dropdown-divider"></div>
+
+                        {% endif %}
+                        {% if user.role == 'motorista' and 'g4_conectar' in etiquetas %}
+                            <a class="dropdown-item" href="/motoristas/conecta_g4">
+                                <i class="mdi mdi-handshake text-muted fs-lg align-middle me-1"></i>
+                                <span class="align-middle"> G4 CONECTA </span>
+                            </a>
+                        {% endif %}
+                        <!--  <a class="dropdown-item" href="/motoristas/fechamento">
+                            <i class="mdi mdi-file-chart text-muted fs-lg align-middle me-1"></i>
+                            <span class="align-middle">Fechamento</span>
+                        </a> -->
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="/logout">
+                            <i class="mdi mdi-logout text-muted fs-lg align-middle me-1"></i>
+                            <span class="align-middle" data-key="t-logout">Sair</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</header>
+
+
+
+{% endblock header %}

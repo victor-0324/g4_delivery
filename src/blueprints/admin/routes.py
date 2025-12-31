@@ -22,7 +22,7 @@ def public_endpoint(function):
 
 
 @login_required
-@admin_app.route("/motoboys", methods=["GET", "POST"])
+@admin_app.route("/motoboys", methods=["GET"])
 def motoboys():
     """Render the delivery admin page for the web application."""
 
@@ -78,5 +78,3 @@ def delivery():
     empresas = ConsultasDelivery.busca_todas_empras()
     # print(f"Empresas encontradas: {empresas}")
     return render_template("pages/delivery/admin.html", user=user, empresas=empresas)
-
-

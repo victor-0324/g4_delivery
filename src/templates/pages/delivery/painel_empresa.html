@@ -1,0 +1,136 @@
+{% extends 'partials/base.html' %}
+{% block title %} Invoice List {% endblock title %}
+
+{% block extra_css %}
+
+<!-- Sweet Alert css-->
+<link href="{{url_for('static' ,filename='libs/sweetalert2/sweetalert2.min.css')}}" rel="stylesheet" type="text/css">
+
+{% endblock extra_css %}
+
+{% block content %}
+<!-- start page title -->
+
+<div class="row">
+
+{% if empresa %}
+    <div class="col-xxl-12 col-md-12">
+        <div class="card overflow-hidden">
+            <div class="card-body">
+
+                <div class="avatar-sm float-end">
+                    <div class="avatar-title bg-success-subtle text-success fs-3xl rounded">
+                        <i class="bi bi-wallet2"></i>
+                    </div>
+                </div>
+
+                <p class="text-uppercase fw-semibold text-muted mb-1">
+                    Créditos disponíveis
+                </p>
+
+                <h4 class="mb-2">
+                    R$ {{ "%.2f"|format(empresa.credito or 0) }}
+                </h4>
+
+                <p class="text-muted">
+                    <span class="badge bg-primary-subtle text-primary">
+                        <i class="bi bi-building"></i>
+                        {{ empresa.nome or "Empresa não informada" }}
+                    </span>
+                </p>
+
+            </div>
+
+            <div class="progress progress-sm rounded-0">
+                <div class="progress-bar bg-success"
+                     style="width: {{ empresa.credito if empresa.credito and empresa.credito <= 100 else 0 }}%">
+                </div>
+            </div>
+        </div>
+    </div>
+{% else %}
+    <div class="col-12">
+        <div class="alert alert-warning text-center">
+            Nenhuma empresa encontrada. Bora cadastrar 🚀
+        </div>
+    </div>
+{% endif %}
+
+</div>
+
+
+
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Pedidos da Empresa</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+
+                    <table id="buttons-datatables" class="display table table-bordered table-nowrap">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>Valor</th>
+                                <th>Endereço de Entrega</th>
+                                <th>Status</th>
+                                <th>Motoboy</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for p in pedidos %}
+                            <tr>
+                                <td>{{ p.id }}</td>
+                                <td>R$ {{ "%.2f"|format(p.valor) }}</td>
+                                <td>{{ p.endereco_entrega }}</td>
+                                <td>
+                                    <span class="badge bg-info">{{ p.status }}</span>
+                                </td>
+
+                                <td>{{ p.motoboy_id or '-' }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+
+                    </table>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!--end row-->
+{% endblock content %}
+
+{% block extra_content %}
+
+<!-- Grids in modals -->
+
+
+{% endblock extra_content %}
+
+
+{% block extra_js %}
+
+<!-- CSS do Flatpickr -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
+<!-- JS do Flatpickr -->
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+<!-- Tradução para PT-BR -->
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
+<!-- invoice list-->
+<script src="{{url_for('static' ,filename='js/pages/invoice-list.init.js')}}"></script>
+<script src="{{ url_for('static', filename='ajax/detalhes.js') }}"></script>
+<script src="{{url_for('static', filename='libs/apexcharts/apexcharts.min.js')}}"></script>
+
+
+<script src="{{url_for('static', filename='js/pages/dashboard-real-estate.init.js')}}"></script>
+
+
+{% endblock extra_js %}

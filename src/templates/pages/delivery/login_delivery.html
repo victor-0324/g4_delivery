@@ -1,0 +1,80 @@
+{% extends "pages/account/account_base.html" %}
+
+{% block title %}Login{% endblock title %}
+
+
+{% block content %}
+
+<div class="d-flex justify-content-center align-items-center vh-100 glass-bg">
+
+    <div class="card border-0 shadow p-4 " border="0"
+        style="min-width: 350px; max-width: 450px; width: 100%; border-radius: 20px;">
+        <div class="card-body">
+            <div class="text-center mb-4">
+                <h5 class="fs-3xl">Bem vindo</h5>
+                <p class="text-muted">G4 DELIVERY <br> 🛵💨</p>
+            </div>
+
+            <form id="login-form" method="POST" action="{{ url_for('delivery_app.login') }}">
+                {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-danger text-center" role="alert">
+                    <strong>{{ message }}</strong>
+                </div>
+                {% endfor %}
+                {% endif %}
+                {% endwith %}
+
+                <div class="mb-3">
+                    <label for="login" class="form-label">Login <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" name="login" placeholder="Email ou CPF" required>
+                </div>
+
+                <div class="mb-3">
+                    <div class="float-end">
+                        <a href="#!" class="text-muted">Esqueceu a senha?</a>
+                    </div>
+                    <label class="form-label" for="password-input">Senha <span class="text-danger">*</span></label>
+                    <div class="position-relative auth-pass-inputgroup mb-3">
+                        <input type="password" class="form-control pe-5 password-input" name="password"
+                            placeholder="Digite sua senha" id="password-input" required>
+                        <button
+                            class="btn btn-link position-absolute end-0 top-0 text-decoration-none text-muted password-addon"
+                            type="button" id="password-addon">
+                            <i class="ri-eye-fill align-middle"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <br>
+                <div class="d-grid">
+                    <button type="submit"
+                        style="background-color: #02CDDA; color: #ffffff; border: none; border-radius: 8px; padding: 10px 20px;">
+                        Entrar
+                    </button>
+                </div>
+            </form>
+
+            <!--  <div class="text-center mt-4">
+                <p class="mb-0">Ainda não é cadastrado? <a href="/init/cadastro" class="fw-semibold text-secondary text-decoration-underline">Cadastre-se</a></p>
+            </div>-->
+        </div>
+    </div>
+
+    {% endblock content %}
+
+
+
+
+    {% block extra_js %}
+
+    <script src="{{url_for('static' ,filename='js/pages/password-addon.init.js')}}"></script>
+
+    <!--Swiper slider js-->
+    <script src="{{url_for('static' ,filename='libs/swiper/swiper-bundle.min.js')}}"></script>
+
+    <!-- swiper.init js -->
+    <script src="{{url_for('static' ,filename='js/pages/swiper.init.js')}}"></script>
+
+    {% endblock extra_js %}

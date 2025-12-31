@@ -50,41 +50,40 @@ def check_valid_login():
 @public_endpoint
 @auth.route("/login", methods=["GET", "POST"])
 def login():
-    """Login user in system"""
     if request.method == "POST":
-        cpf = request.form.get("cpf")
+        login_input = request.form.get("login")
         password = request.form.get("password")
-        print(f"CPF: {cpf}, Senha: {password}")
 
-        # Buscar o usuário no banco
-        user = UserQuerys.get_by_cpf(cpf)
+        print(f"Login informado: {login_input}")
 
-        print(
-            f"Usuário encontrado: {user.name if user else 'Nenhum usuário encontrado'}"
-        )
+        user = UserQuerys.delivery_busca_email_ou_cpf(login_input)
 
-        if user and user.check_password(password):
-            login_user(user)
-            session["user"] = user.to_dict()
+        print(f"Usuário encontrado: {user.name if user else 'Nenhum'}")
 
-            if user.alterar_senha:
-                return redirect(url_for("auth.altera_password"))
+        if not user or not user.check_password(password):
+            flash("Credenciais inválidas.")
+            return redirect(url_for("delivery_app.login"))
 
-            if user.role == "admin":
-                UserQuerys.entrou_no_sistema(user=user)
-                return redirect(url_for("admin_app.administrador"))
-            elif user.role == "motorista":
-                UserQuerys.entrou_no_sistema(user=user)
-                return redirect(url_for("motoristas_app.faturamentos"))
-            else:
-                print("Papel do usuário desconhecido.")
-                return redirect(url_for("auth.login"))
+        # Autentica
+        login_user(user)
+        session["user"] = user.to_dict()
 
-        flash("CPF ou senha incorretos.")
-        print("Login falhou.")
-        return redirect(url_for("auth.login"))
+        # Redireciona conforme role
+        if user.alterar_senha:
+            return redirect(url_for("delivery_app.altera_password"))
 
-    return render_template("pages/account/login.html")
+        # Fluxos bem definidos
+        if user.role == "admin_delivery":
+            return redirect(url_for("delivery_app.administrador"))
+        elif user.role == "motoboy":
+            return redirect(url_for("delivery_app.entregadores"))
+        elif user.role == "empresa_delivery":
+            return redirect(url_for("delivery_app.painel_empresa"))
+        else:
+            flash("Tipo de usuário desconhecido.")
+            return redirect(url_for("delivery_app.login"))
+
+    return render_template("pages/delivery/login_delivery.html")
 
 
 @login_required
@@ -123,24 +122,29 @@ def inicio():
 
 
 @login_required
-@auth.route("/set_password", methods=["GET", "POST"])
+@auth.route("/altera_password", methods=["GET", "POST"])
 def altera_password():
-    user = current_user
-    print(f"Usuário atual: {user.id}")
+    """Altera a senha do usuário."""
+    session_user = session.get("user")
+    print(f"Usuário na sessão: {session_user}")
+    user = UserQuerys.delivery_busca_cpf(session_user["cpf"])
+    if not user:
+        return redirect(url_for("delivery_app.login"))
+
     if request.method == "POST":
         nova_senha = request.form["new_password"]
         confirma_senha = request.form["confirm_password"]
 
         if nova_senha != confirma_senha:
             flash("Senhas não coincidem.")
-            return redirect(url_for("auth.altera_password"))
+            return redirect(url_for("delivery_app.altera_password"))
 
         try:
             UserQuerys.altera_password(user.id, nova_senha)
             flash("Senha atualizada com sucesso.")
-            return redirect(url_for("motoristas_app.faturamentos"))
+            return redirect(url_for("delivery_app.login"))
         except ValueError as e:
             flash(str(e))
-            return redirect(url_for("auth.altera_password"))
+        return redirect(url_for("delivery_app.altera_password"))
 
-    return render_template("pages/account/set_password.html")
+    return render_template("pages/delivery/altera_password.html", user=user)
