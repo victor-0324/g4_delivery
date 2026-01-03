@@ -1,5 +1,14 @@
 from src.database import Base
-from sqlalchemy import Column, Integer, String, Numeric, DateTime, JSON, ForeignKey
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    Numeric,
+    DateTime,
+    JSON,
+    ForeignKey,
+    func,
+)
 from sqlalchemy.orm import relationship
 
 
@@ -40,6 +49,7 @@ class G4DeliveryEmpresas(Base):
             "lon": self.lon,
             "status": self.status,
         }
+
 
 class G4DeliveryMotoboy(Base):
     __tablename__ = "g4_delivery_motoboys"
@@ -130,11 +140,7 @@ class G4DeliveryContabilizar(Base):
     valor = Column(Numeric(10, 2), nullable=False)
     status = Column(String(50), nullable=False)
 
-    empresa_id = Column(
-        Integer,
-        ForeignKey("g4_delivery_empresas.id"),
-        nullable=True
-    )
+    empresa_id = Column(Integer, ForeignKey("g4_delivery_empresas.id"), nullable=True)
 
     telefone = Column(String(20), nullable=False)
     id_mensagem = Column(String(100))
@@ -150,12 +156,7 @@ class G4DeliveryContabilizar(Base):
     hora_aceite = Column(DateTime, default=None)
     hora_espera = Column(DateTime, default=None)
 
-
-    motoboy_id = Column(
-        Integer,
-        ForeignKey("g4_delivery_motoboys.id"),
-        nullable=True
-    )
+    motoboy_id = Column(Integer, ForeignKey("g4_delivery_motoboys.id"), nullable=True)
 
     empresa = relationship("G4DeliveryEmpresas", back_populates="pedidos")
     motoboy = relationship("G4DeliveryMotoboy", back_populates="fretes")

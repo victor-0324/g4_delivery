@@ -62,7 +62,7 @@ def login():
 
         if not user or not user.check_password(password):
             flash("Credenciais inválidas.")
-            return redirect(url_for("delivery_app.login"))
+            return redirect(url_for("auth.login"))
 
         # Autentica
         login_user(user)
@@ -70,7 +70,7 @@ def login():
 
         # Redireciona conforme role
         if user.alterar_senha:
-            return redirect(url_for("delivery_app.altera_password"))
+            return redirect(url_for("auth.altera_password"))
 
         # Fluxos bem definidos
         if user.role == "admin_delivery":
@@ -81,7 +81,7 @@ def login():
             return redirect(url_for("delivery_app.painel_empresa"))
         else:
             flash("Tipo de usuário desconhecido.")
-            return redirect(url_for("delivery_app.login"))
+            return redirect(url_for("auth.login"))
 
     return render_template("pages/delivery/login_delivery.html")
 
@@ -129,7 +129,7 @@ def altera_password():
     print(f"Usuário na sessão: {session_user}")
     user = UserQuerys.delivery_busca_cpf(session_user["cpf"])
     if not user:
-        return redirect(url_for("delivery_app.login"))
+        return redirect(url_for("auth.login"))
 
     if request.method == "POST":
         nova_senha = request.form["new_password"]
@@ -137,14 +137,14 @@ def altera_password():
 
         if nova_senha != confirma_senha:
             flash("Senhas não coincidem.")
-            return redirect(url_for("delivery_app.altera_password"))
+            return redirect(url_for("auth.altera_password"))
 
         try:
             UserQuerys.altera_password(user.id, nova_senha)
             flash("Senha atualizada com sucesso.")
-            return redirect(url_for("delivery_app.login"))
+            return redirect(url_for("auth.login"))
         except ValueError as e:
             flash(str(e))
-        return redirect(url_for("delivery_app.altera_password"))
+        return redirect(url_for("auth.altera_password"))
 
     return render_template("pages/delivery/altera_password.html", user=user)

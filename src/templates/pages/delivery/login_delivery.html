@@ -15,7 +15,7 @@
                 <p class="text-muted">G4 DELIVERY <br> 🛵💨</p>
             </div>
 
-            <form id="login-form" method="POST" action="{{ url_for('delivery_app.login') }}">
+            <form id="login-form" method="POST" action="{{ url_for('auth.login') }}">
                 {% with messages = get_flashed_messages() %}
                 {% if messages %}
                 {% for message in messages %}

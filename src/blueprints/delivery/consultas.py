@@ -7,7 +7,7 @@ from ..delivery.tabelas import (
     G4DeliveryClientes,
     G4DeliveryContabilizar,
 )
-# from ..enderecos.google_api import ConsultasGoogleAPI
+from ..enderecos.google_api import ConsultasGoogleAPI
 from decimal import Decimal, InvalidOperation
 from datetime import datetime
 
@@ -66,11 +66,7 @@ class ConsultasDelivery:
     @db_connector
     def atualizar_empresa(cls, connection, id, nome, telefone, endereco, credito):
         """Atualiza os dados de uma empresa parceira."""
-        empresa = (
-            connection.session.query(G4DeliveryEmpresas)
-            .filter_by(id=id)
-            .first()
-        )
+        empresa = connection.session.query(G4DeliveryEmpresas).filter_by(id=id).first()
         if not empresa:
             return None
 
@@ -220,7 +216,19 @@ class ConsultasDelivery:
 
     @classmethod
     @db_connector
-    def Contabilizar(cls, connection, telefone, valor,  retirada_lat, retirada_lon, entrega_lat, entrega_lon, usuario, via, status="pendente"):
+    def Contabilizar(
+        cls,
+        connection,
+        telefone,
+        valor,
+        retirada_lat,
+        retirada_lon,
+        entrega_lat,
+        entrega_lon,
+        usuario,
+        via,
+        status="pendente",
+    ):
         """Contabiliza o valor da entrega para o motoboy"""
         valor_decimal = Decimal(str(valor).replace(",", "."))
         if usuario == "pessoa":
@@ -241,63 +249,63 @@ class ConsultasDelivery:
             return registro.id
 
         registro = G4DeliveryContabilizar(
-                telefone=telefone,
-                valor=float(valor_decimal),
-                retirada_lat=str(retirada_lat),
-                retirada_lon=str(retirada_lon),
-                entrega_lat=str(entrega_lat),
-                entrega_lon=str(entrega_lon),
-                empresa_id=usuario,
-                via=via,
-                status=status,
-                hora_pedido=datetime.now(),
-                )
+            telefone=telefone,
+            valor=float(valor_decimal),
+            retirada_lat=str(retirada_lat),
+            retirada_lon=str(retirada_lon),
+            entrega_lat=str(entrega_lat),
+            entrega_lon=str(entrega_lon),
+            empresa_id=usuario,
+            via=via,
+            status=status,
+            hora_pedido=datetime.now(),
+        )
 
         connection.session.add(registro)
         connection.session.commit()
         return registro.id
 
-    # @classmethod
-    # @db_connector
-    # def buscar_motoboy_frete(cls, connection, frete_id):
-    #     """Busca o motoboy livre mais próximo"""
+    @classmethod
+    @db_connector
+    def buscar_motoboy_frete(cls, connection, frete_id):
+        """Busca o motoboy livre mais próximo"""
 
-    #     frete = (
-    #         connection.session.query(G4DeliveryContabilizar)
-    #         .filter_by(id=frete_id)
-    #         .first()
-    #     )
+        frete = (
+            connection.session.query(G4DeliveryContabilizar)
+            .filter_by(id=frete_id)
+            .first()
+        )
 
-    #     livres = ConsultasDelivery.verificar_livres()
-    #     if not livres:
-    #         return None
+        livres = ConsultasDelivery.verificar_livres()
+        if not livres:
+            return None
 
-    #     recusou = ConsultasDelivery.verificar_recusados(frete)
+        recusou = ConsultasDelivery.verificar_recusados(frete)
 
-    #     motoboy_mais_proximo = None
-    #     menor_distancia = float("inf")
+        motoboy_mais_proximo = None
+        menor_distancia = float("inf")
 
-    #     for m in livres:
-    #         if m.telefone in recusou:
-    #             continue
+        for m in livres:
+            if m.telefone in recusou:
+                continue
 
-    #         resultado = ConsultasGoogleAPI.comparar_distancias(
-    #             partida_lat=m.lat,
-    #             partida_lon=m.lon,
-    #             chegada_lat=frete.retirada_lat,
-    #             chegada_lon=frete.retirada_lon,
-    #         )
+            resultado = ConsultasGoogleAPI.comparar_distancias(
+                partida_lat=m.lat,
+                partida_lon=m.lon,
+                chegada_lat=frete.retirada_lat,
+                chegada_lon=frete.retirada_lon,
+            )
 
-    #         if not resultado:
-    #             continue
+            if not resultado:
+                continue
 
-    #         distancia = resultado["distancia"]
+            distancia = resultado["distancia"]
 
-    #         if distancia < menor_distancia:
-    #             menor_distancia = distancia
-    #             motoboy_mais_proximo = m
+            if distancia < menor_distancia:
+                menor_distancia = distancia
+                motoboy_mais_proximo = m
 
-    #     return motoboy_mais_proximo.to_dict() if motoboy_mais_proximo else None
+        return motoboy_mais_proximo.to_dict() if motoboy_mais_proximo else None
 
     @classmethod
     @db_connector
@@ -358,7 +366,6 @@ class ConsultasDelivery:
 
         if frete.recusou is None:
             frete.recusou = []
-
 
         if telefone not in frete.recusou:
             frete.recusou.append(telefone)

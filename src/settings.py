@@ -11,12 +11,15 @@ class Config:
     LOCAL = os.environ.get("LOCAL")
     load_dotenv(LOCAL)
     DATABASE_CONNECTION = os.environ.get("DATABASE_CONNECTION")
+    SECRET_KEY = os.environ.get("SECRET_KEY")
+
 
 class TestingConfig(Config):
     """Ambiente de testes"""
 
     DEBUG = False
     TESTING = True
+
 
 class ProductionConfig(Config):
     """Ambiente de produção"""

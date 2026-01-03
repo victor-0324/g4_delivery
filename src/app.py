@@ -35,11 +35,13 @@ def init_app() -> Flask:
             admin_app,
             auth,
             delivery_app,
+            endereco_app,
         )
 
         app.register_blueprint(delivery_app)
         app.register_blueprint(admin_app)
         app.register_blueprint(auth)
+        app.register_blueprint(endereco_app)
 
         # Criando tabelas no banco de dados
         Base.metadata.create_all(engine)
