@@ -1,0 +1,93 @@
+{% extends 'partials/base.html' %}
+{% block title %} Motoboys Cadastrados {% endblock title %}
+
+{% block extra_css %}
+<!-- Sweet Alert css-->
+<link href="{{ url_for('static', filename='libs/sweetalert2/sweetalert2.min.css') }}" rel="stylesheet" type="text/css">
+<!-- Se você usa DataTables, mantenha os estilos necessários -->
+<link rel="stylesheet" href="{{ url_for('static', filename='libs/datatables/dataTables.bootstrap5.min.css') }}">
+{% endblock extra_css %}
+
+{% block content %}
+
+<!-- Tabela completa -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0"><i class="bi bi-table"></i> Tabela de Motoboys</h5>
+            </div>
+
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table id="motoboys-table" class="table table-bordered table-striped align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>Nome</th>
+                                <th>Telefone</th>
+                                <th>CPF</th>
+                                <th>Placa</th>
+                                <th>Status</th>
+                                <th>Último Pedido</th>
+                                <th>Hora Livre</th>
+                                <th>Etiqueta</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for m in moto_boy %}
+                            <tr>
+                                <td>{{ m.id }}</td>
+                                <td>{{ m.nome }}</td>
+                                <td>{{ m.telefone }}</td>
+                                <td>{{ m.cpf }}</td>
+                                <td>{{ m.placa }}</td>
+                                <td>
+                                    {% if m.status == 'on' or m.status == 'ativo' %}
+                                        <span class="badge bg-success-subtle text-success">Ativo</span>
+                                    {% elif m.status == 'off' or m.status == 'inativo' %}
+                                        <span class="badge bg-danger-subtle text-danger">Offline</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary-subtle text-secondary">{{ m.status or '-' }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ m.id_pedido or '-' }}</td>
+                                <td>{{ m.hora_livre or '-' }}</td>
+                                <td>{{ m.etiqueta or '-' }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block extra_js %}
+<!-- Dependências opcionais: DataTables (se já usar), Flatpickr, etc -->
+<script src="{{ url_for('static', filename='libs/jquery/jquery.min.js') }}"></script>
+<script src="{{ url_for('static', filename='libs/datatables/jquery.dataTables.min.js') }}"></script>
+<script src="{{ url_for('static', filename='libs/datatables/dataTables.bootstrap5.min.js') }}"></script>
+
+<script>
+    // Inicializa DataTable
+    $(document).ready(function () {
+        $('#motoboys-table').DataTable({
+            responsive: true,
+            pageLength: 10,
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json"
+            }
+        });
+    });
+</script>
+
+<!-- Seus outros scripts -->
+<script src="{{ url_for('static', filename='js/pages/invoice-list.init.js') }}"></script>
+<script src="{{ url_for('static', filename='ajax/detalhes.js') }}"></script>
+<script src="{{ url_for('static', filename='libs/apexcharts/apexcharts.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/pages/dashboard-real-estate.init.js') }}"></script>
+{% endblock extra_js %}

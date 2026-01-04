@@ -27,7 +27,7 @@ def motoboys():
     """Render the delivery admin page for the web application."""
 
     user = session.get("user")
-    if not user or user.get("role") != "admin":
+    if not user or user.get("role") != "admin_delivery":
         return redirect(url_for("auth.login"))
 
     moto_boy = ConsultasDelivery.busca_motoboys()
@@ -40,7 +40,7 @@ def motoboys():
 def delivery():
     """Render the delivery admin page for the web application."""
     user = session.get("user")
-    if not user or user.get("role") != "admin":
+    if not user or user.get("role") != "admin_delivery":
         return redirect(url_for("auth.login"))
 
     if request.method == "POST":

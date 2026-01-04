@@ -59,7 +59,7 @@ def login():
         user = UserQuerys.delivery_busca_email_ou_cpf(login_input)
 
         print(f"Usuário encontrado: {user.name if user else 'Nenhum'}")
-
+        print(f"user: {user.role}")
         if not user or not user.check_password(password):
             flash("Credenciais inválidas.")
             return redirect(url_for("auth.login"))
@@ -74,7 +74,7 @@ def login():
 
         # Fluxos bem definidos
         if user.role == "admin_delivery":
-            return redirect(url_for("delivery_app.administrador"))
+            return redirect(url_for("admin_app.delivery"))
         elif user.role == "motoboy":
             return redirect(url_for("delivery_app.entregadores"))
         elif user.role == "empresa_delivery":
@@ -106,11 +106,7 @@ def create_user():
 def logout():
     """Logout user."""
     logout_user()
-    user = session.get("user")
-    print(f"Usuário deslogado: {user['role'] if user else 'Nenhum'}")
-    if user["role"] == "motoboy" or user["role"] == "empresa_delivery":
-        return redirect(url_for("delivery_app.login"))
-
+    session.pop("user", None)
     return redirect(url_for("auth.login"))
 
 

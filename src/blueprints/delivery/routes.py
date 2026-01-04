@@ -30,7 +30,6 @@ def public_endpoint(function):
     function.is_public = True
     return function
 
-
 @login_required
 @delivery_app.route("/", methods=["GET"])
 def painel_empresa():
