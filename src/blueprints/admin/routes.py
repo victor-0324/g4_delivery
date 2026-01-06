@@ -10,7 +10,7 @@ from flask import (
 
 from ..delivery.consultas import ConsultasDelivery
 from flask_login import login_required
-
+from ..delivery.src.functions import fila_motoristas
 
 admin_app = Blueprint("admin_app", __name__, url_prefix="/admin/")
 
@@ -31,7 +31,7 @@ def motoboys():
         return redirect(url_for("auth.login"))
 
     moto_boy = ConsultasDelivery.busca_motoboys()
-    # print(f"Empresas encontradas: {empresas}")
+    # print(f"Empresas encontradas: {moto_boy}")
     return render_template("deshboards/motoboy.html", user=user, moto_boy=moto_boy)
 
 
@@ -76,5 +76,6 @@ def delivery():
         return redirect(url_for("admin_app.delivery"))
 
     empresas = ConsultasDelivery.busca_todas_empras()
-    # print(f"Empresas encontradas: {empresas}")
-    return render_template("pages/delivery/admin.html", user=user, empresas=empresas)
+    fila = fila_motoristas()
+
+    return render_template("pages/delivery/admin.html", user=user, empresas=empresas, fila=fila)

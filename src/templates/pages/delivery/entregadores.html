@@ -10,13 +10,66 @@
 
 {% block content %}
 <!-- start page title -->
+ <div class="row">
+    <div class="col-12">
+        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+            <h4 class="mb-sm-0">Fila Dos Motoboys </h4>
+        </div>
+    </div>
+</div>
+
+
+<!--end row-->
+<div class="table-responsive">
+    <table class="table table-striped align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>Posição</th>
+                <th>Nome</th>
+                <!-- <th>Endereço</th>-->
+                <th>Hora Livre</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for motorista in fila %}
+            <tr {% if loop.index == 1 %}class="table-primary"{% endif %}>
+                <td>
+                    {% if loop.index == 1 %}
+                        <span class="badge bg-primary">Próximo</span>
+                    {% else %}
+                        {{ loop.index }}
+                    {% endif %}
+                </td>
+
+                <td title="{{ motorista.nome }}">
+                    {{ motorista.nome[:25] }}{{ '...' if motorista.nome|length > 25 else '' }}
+                </td>
+
+               <!-- <td title="{{ motorista.endereco }}">
+                    {{ motorista.endereco|default('')|truncate(25, True, '...') }}
+
+                </td>-->
+
+                <td>
+                    {% if motorista.hora_livre %}
+                        {{ motorista.hora_livre.strftime('%d/%m/%Y, %H:%M:%S') }}
+                    {% else %}
+                        Não registrado
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
 <div class="row">
     <div class="col-xl-12">
         <div class="card">
             <div class="card-body">
                 <div class="row g-4">
-                    <!-- Valor Total das Corridas -->
 
+                    <!-- Total de Corridas -->
                     <div class="col-lg-3 col-sm-6 border-end-lg">
                         <div>
                             <div class="d-flex align-items-center gap-2 mb-4">
@@ -30,10 +83,11 @@
                                 </div>
                             </div>
                             <h3 class="mb-0">
-                                <span id="total_corridas" class="counter-value" data-target="0">0</span>
+                                {{ total_corridas }}
                             </h3>
                         </div>
                     </div>
+
                     <!-- Receita Bruta -->
                     <div class="col-lg-3 col-sm-6 border-end-sm">
                         <div>
@@ -48,10 +102,11 @@
                                 </div>
                             </div>
                             <h3 class="mb-0">
-                                <span id="receita_bruta">R$ 0,00</span>
+                                R$ {{ "%.2f"|format(receita_bruta) }}
                             </h3>
                         </div>
                     </div>
+
                     <!-- Comissão -->
                     <div class="col-lg-3 col-sm-6 border-end-sm">
                         <div>
@@ -66,10 +121,11 @@
                                 </div>
                             </div>
                             <h3 class="mb-0">
-                                <span id="comissao">R$ 0,00</span>
+                                R$ {{ "%.2f"|format(comissao) }}
                             </h3>
                         </div>
                     </div>
+
                     <!-- Receita Líquida -->
                     <div class="col-lg-3 col-sm-6">
                         <div>
@@ -84,16 +140,58 @@
                                 </div>
                             </div>
                             <h3 class="mb-0">
-                                <span id="receita_liquida">R$ 0,00</span>
+                                R$ {{ "%.2f"|format(receita_liquida) }}
                             </h3>
                         </div>
                     </div>
+
                 </div>
             </div>
-        </div><!--end card-->
-    </div><!--end col-->
+        </div>
+    </div>
 </div>
 
+
+<div class="card mt-4">
+    <div class="card-header">
+        <h5 class="mb-0">Corridas na semana</h5>
+    </div>
+
+    <div class="card-body">
+        {% if corridas %}
+            <div class="table-responsive">
+                <table class="table table-striped align-middle">
+                    <thead>
+                        <tr>
+                            <th>Valor</th>
+                            <th>Data/Hora</th>
+                            <th>Via</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for c in corridas %}
+                        <tr>
+                            <td>R$ {{ "%.2f"|format(c.valor|float) }}</td>
+
+                            <td>
+                                {% if c.data_hora %}
+                                    {{ c.data_hora.strftime('%d/%m/%Y %H:%M') }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+
+                            <td>{{ c.via }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-muted">Nenhuma corrida encontrada no período.</p>
+        {% endif %}
+    </div>
+</div>
 <!--end row-->
 {% endblock content %}
 

@@ -11,7 +11,7 @@ from flask import (
 import requests
 from flask_login import login_required, login_user
 from ..delivery.consultas import ConsultasDelivery
-
+from .src.functions import fila_motoristas
 # from ..enderecos.google_api import ConsultasGoogleAPI
 from src.database.querys import UserQuerys
 from .src.functions import verificar_usuarios
@@ -68,12 +68,46 @@ def gerar_pix():
 @login_required
 @delivery_app.route("/entregadores", methods=["GET"])
 def entregadores():
-    """Render the main page for the web application."""
     user = session.get("user")
-    if user["role"] != "motoboy":
+
+    if not user or user.get("role") != "motoboy":
         return redirect(url_for("auth.login"))
 
-    return render_template("pages/delivery/entregadores.html", user=user)
+    motoboy = ConsultasDelivery.buscar_por_cpf(user["cpf"])
+    fretes = ConsultasDelivery.busca_fretes_motoboy(motoboy["id"])
+    fila = fila_motoristas()
+    print("fila:", fila)
+    corridas = []
+    receita_bruta = 0.0
+
+    for f in fretes:
+        valor = float(f.get("valor", 0))
+        receita_bruta += valor
+
+        corridas.append({
+            "id": f.get("id"),
+            "valor": valor,
+            "data_hora": f.get("hora_aceite") or f.get("hora_pedido"),
+            "via": f.get("via"),
+            "status": f.get("status"),
+        })
+
+    total_corridas = len(corridas)
+
+    percentual_comissao = 0.10  # 10%
+    comissao = receita_bruta * percentual_comissao
+    receita_liquida = receita_bruta - comissao
+
+    return render_template(
+        "pages/delivery/entregadores.html",
+        user=user,
+        corridas=corridas,
+        total_corridas=total_corridas,
+        receita_bruta=receita_bruta,
+        comissao=comissao,
+        receita_liquida=receita_liquida,
+        fila=fila,
+    )
 
 
 @public_endpoint

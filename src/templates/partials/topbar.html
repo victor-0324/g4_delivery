@@ -45,6 +45,10 @@
 
                         <!-- Item exclusivo para admin -->
                         {% if user.role == 'admin_delivery' %}
+                            <a class="dropdown-item" href="/admin/delivery">
+                                <i class="mdi mdi-storefront text-muted fs-lg align-middle me-1"></i>
+                                <span class="align-middle">Inicio </span>
+                            </a>
                             <a class="dropdown-item" href="/g4delivery/cadastrar_motoboy">
                                 <i class="mdi mdi-motorbike text-muted fs-lg align-middle me-1"></i>
                                 <span class="align-middle">Cadastrar Motoboy</span>
@@ -57,10 +61,7 @@
                                 <i class="mdi mdi-bike text-muted fs-lg align-middle me-1"></i>
                                 <span class="align-middle">Ver Motoboys</span>
                             </a>
-                            <a class="dropdown-item" href="/admin/delivery">
-                                <i class="mdi mdi-storefront text-muted fs-lg align-middle me-1"></i>
-                                <span class="align-middle">Delivery </span>
-                            </a>
+
 
 
 

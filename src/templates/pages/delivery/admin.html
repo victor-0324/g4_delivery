@@ -3,6 +3,59 @@
 {% block title %}Empresas cadastradas {% endblock title %}
 
 {% block content %}
+ <div class="row">
+    <div class="col-12">
+        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+            <h4 class="mb-sm-0">Fila Dos Motoboys </h4>
+        </div>
+    </div>
+</div>
+
+
+<!--end row-->
+<div class="table-responsive">
+    <table class="table table-striped align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>Posição</th>
+                <th>Nome</th>
+                <!-- <th>Endereço</th>-->
+                <th>Hora Livre</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for motorista in fila %}
+            <tr {% if loop.index == 1 %}class="table-primary"{% endif %}>
+                <td>
+                    {% if loop.index == 1 %}
+                        <span class="badge bg-primary">Próximo</span>
+                    {% else %}
+                        {{ loop.index }}
+                    {% endif %}
+                </td>
+
+                <td title="{{ motorista.nome }}">
+                    {{ motorista.nome[:25] }}{{ '...' if motorista.nome|length > 25 else '' }}
+                </td>
+
+               <!-- <td title="{{ motorista.endereco }}">
+                    {{ motorista.endereco|default('')|truncate(25, True, '...') }}
+
+                </td>-->
+
+                <td>
+                    {% if motorista.hora_livre %}
+                        {{ motorista.hora_livre.strftime('%d/%m/%Y, %H:%M:%S') }}
+                    {% else %}
+                        Não registrado
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
 <div class="card">
     <div class="card-body p-0">
         <table class="table align-middle table-nowrap mb-0">
@@ -67,6 +120,7 @@
 {% endblock content %}
 
 {% block extra_content %}
+
 
 
 <div class="modal fade" id="modalEditarEmpresa" tabindex="-1">

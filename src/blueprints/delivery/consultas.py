@@ -14,6 +14,16 @@ from datetime import datetime
 
 class ConsultasDelivery:
     """Faz as Consultas para g4 delivery"""
+    @classmethod
+    @db_connector
+    def busca_fretes_motoboy(cls, connection, motoboy_id):
+        """Busca todos os fretes de um motoboy"""
+        fretes = (
+            connection.session.query(G4DeliveryContabilizar)
+            .filter_by(motoboy_id=motoboy_id)
+            .all()
+        )
+        return [frete.to_dict() for frete in fretes] if fretes else []
 
     @classmethod
     @db_connector
@@ -24,7 +34,7 @@ class ConsultasDelivery:
 
     @classmethod
     @db_connector
-    def verifica_usuario(cls, connection, telefone, tipo):
+    def verifica_usuario(cls, connection, telefone):
         """Verifica se o usuário existe no banco de dados"""
 
         usuario = (
