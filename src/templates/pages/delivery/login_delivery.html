@@ -16,15 +16,13 @@
             </div>
 
             <form id="login-form" method="POST" action="{{ url_for('auth.login') }}">
-                {% with messages = get_flashed_messages() %}
+            {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
-                {% for message in messages %}
-                <div class="alert alert-danger text-center" role="alert">
-                    <strong>{{ message }}</strong>
-                </div>
-                {% endfor %}
+                  {% for category, msg in messages %}
+                    <div class="alert alert-{{ category }}">{{ msg }}</div>
+                  {% endfor %}
                 {% endif %}
-                {% endwith %}
+            {% endwith %}
 
                 <div class="mb-3">
                     <label for="login" class="form-label">Login <span class="text-danger">*</span></label>

@@ -12,6 +12,8 @@ class Config:
     load_dotenv(LOCAL)
     DATABASE_CONNECTION = os.environ.get("DATABASE_CONNECTION")
     SECRET_KEY = os.environ.get("SECRET_KEY")
+    API_LOCATION_KEY = os.environ.get("API_LOCATION_KEY")
+    GOOGLE_API = os.environ.get("GOOGLE_API")
 
 
 class TestingConfig(Config):

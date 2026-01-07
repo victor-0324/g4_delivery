@@ -142,13 +142,13 @@ class G4DeliveryContabilizar(Base):
 
     empresa_id = Column(Integer, ForeignKey("g4_delivery_empresas.id"), nullable=True)
 
-    telefone = Column(String(20), nullable=False)
+    telefone = Column(String(20), nullable=True)
     id_mensagem = Column(String(100))
 
-    retirada_lat = Column(String(100), nullable=False)
-    retirada_lon = Column(String(100), nullable=False)
-    entrega_lat = Column(String(100), nullable=False)
-    entrega_lon = Column(String(100), nullable=False)
+    retirada_lat = Column(String(100), nullable=True)
+    retirada_lon = Column(String(100), nullable=True)
+    entrega_lat = Column(String(100), nullable=True)
+    entrega_lon = Column(String(100), nullable=True)
     endereco_entrega = Column(String(200))
     via = Column(String(20), nullable=False)
     recusou = Column(JSON)

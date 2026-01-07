@@ -239,20 +239,14 @@ def pedir_frete():
     usuario = data.get("usuario")
     via = "WhatsApp"
 
-    frete_id = ConsultasDelivery.Contabilizar(
-        telefone,
-        valor,
-        retirada_lat,
-        retirada_lon,
-        entrega_lat,
-        entrega_lon,
-        usuario,
-        via,
-    )
+    frete_id = ConsultasDelivery.Contabilizar(telefone, valor, retirada_lat, retirada_lon, entrega_lat, entrega_lon, usuario, via)
 
     motoboy = ConsultasDelivery.buscar_motoboy_frete(frete_id)
 
-    return jsonify(motoboy)
+    if motoboy is None:
+        return jsonify({"mensagem": "Nenhum motoboy livre no momento."}), 200
+
+    return jsonify({"motoboy": motoboy, "frete_id": frete_id})
 
 
 @public_endpoint
@@ -317,3 +311,47 @@ def atualizar_status():
     status = data_json.get("status")
     ConsultasDelivery.atualizar_status(telefone, status)
     return jsonify({"response": "Status atualizado com sucesso"}), 200
+
+
+@public_endpoint
+@delivery_app.route("/contabilizar", methods=["POST"])
+def contabilizar():
+    data_json = request.get_json()
+    motorista = data_json.get("telefone")
+    valor = data_json.get("valor")
+    id_mensagem = data_json.get("id_mensagem")
+    via = "WhatsApp"
+    ConsultasDelivery.adc_frete(motorista, valor, id_mensagem, via)
+
+    return jsonify({"response": "Contabilizado com sucesso"}), 200
+
+
+@public_endpoint
+@delivery_app.route("/descontabilizar", methods=["POST"])
+def descontabilizar():
+    data_json = request.get_json()
+    id_mensagem = data_json.get("id_mensagem")
+    ConsultasDelivery.excluir_frete(id_mensagem)
+    return jsonify({"response": "descontabilizado com sucesso"}), 200
+
+
+@public_endpoint
+@delivery_app.route("/verificar_livre", methods=["GET"])
+def verificar_livre():
+    """Verifica se há motoboys livres, ocupados ou todos off."""
+    motoboys = ConsultasDelivery.verifica_motoboys_status()
+
+    if not motoboys:
+        return jsonify({"status": "Off"})
+
+    total = len(motoboys)
+    off = sum(1 for m in motoboys if m["status"] == "off")
+    livres = sum(1 for m in motoboys if m["status"] == "livre")
+
+    if off == total:
+        return jsonify({"status": "Off"})
+
+    if livres > 0:
+        return jsonify({"status": "Livre"})
+
+    return jsonify({"status": "Ocupado"})

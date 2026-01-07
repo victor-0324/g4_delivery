@@ -42,16 +42,16 @@ class ConsultasEnderecos:
 
         return inside
 
-    @classmethod
-    @db_connector
-    def registrar_endereco(cls, connection, nome, bairro, lat, lon):
-        novo = Enderecos(nome=nome, bairro=bairro, lat=lat, lon=lon)
-        """Adiciona um endereço novo ao banco de dados."""
-        connection.session.add(novo)
-        connection.session.commit()
-        connection.session.refresh(novo)
+    # @classmethod
+    # @db_connector
+    # def registrar_endereco(cls, connection, nome, bairro, lat, lon):
+    #     novo = Enderecos(nome=nome, bairro=bairro, lat=lat, lon=lon)
+    #     """Adiciona um endereço novo ao banco de dados."""
+    #     connection.session.add(novo)
+    #     connection.session.commit()
+    #     connection.session.refresh(novo)
 
-        return novo.to_dict()
+    #     return novo.to_dict()
 
     @staticmethod
     def verificar_poligono(lat, lon):

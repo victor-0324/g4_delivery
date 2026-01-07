@@ -59,9 +59,9 @@ def login():
         user = UserQuerys.delivery_busca_email_ou_cpf(login_input)
 
         print(f"Usuário encontrado: {user.name if user else 'Nenhum'}")
-        print(f"user: {user.role}")
+
         if not user or not user.check_password(password):
-            flash("Credenciais inválidas.")
+            flash("Credenciais inválidas.", "danger")
             return redirect(url_for("auth.login"))
 
         # Autentica
@@ -80,7 +80,7 @@ def login():
         elif user.role == "empresa_delivery":
             return redirect(url_for("delivery_app.painel_empresa"))
         else:
-            flash("Tipo de usuário desconhecido.")
+            flash("Tipo de usuário desconhecido.", "danger")
             return redirect(url_for("auth.login"))
 
     return render_template("pages/delivery/login_delivery.html")
@@ -132,12 +132,12 @@ def altera_password():
         confirma_senha = request.form["confirm_password"]
 
         if nova_senha != confirma_senha:
-            flash("Senhas não coincidem.")
+            flash("Senhas não coincidem.", "danger")
             return redirect(url_for("auth.altera_password"))
 
         try:
             UserQuerys.altera_password(user.id, nova_senha)
-            flash("Senha atualizada com sucesso.")
+            flash("Senha atualizada com sucesso.", "success")
             return redirect(url_for("auth.login"))
         except ValueError as e:
             flash(str(e))

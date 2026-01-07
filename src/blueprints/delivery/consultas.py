@@ -475,3 +475,52 @@ class ConsultasDelivery:
         )
         motorista.status = status
         connection.session.commit()
+
+
+    @classmethod
+    @db_connector
+    def adc_frete(cls, conection, telefone, valor, id_mensagem, via):
+        """Contabiliza o valor da corrida para o motoboy"""
+        motoboy = ConsultasDelivery.busca_motoboy_numero(telefone)
+        motoboy_id = motoboy["id"]
+        existente = (
+            conection.session.query(G4DeliveryContabilizar)
+            .filter_by(id_mensagem=id_mensagem)
+            .first()
+        )
+        if existente:
+            return False
+        registro = G4DeliveryContabilizar(
+            motoboy_id=motoboy_id,
+            valor=valor,
+            id_mensagem=id_mensagem,
+            via=via,
+            status="aceito",
+        )
+        conection.session.add(registro)
+        conection.session.commit()
+        return True
+
+    @classmethod
+    @db_connector
+    def excluir_frete(cls, conection, id_mensagem):
+        """Remove a corrida contabilizada pelo id_mensagem"""
+        corrida = (
+            conection.session.query(G4DeliveryContabilizar)
+            .filter_by(id_mensagem=id_mensagem)
+            .first()
+        )
+
+        if corrida:
+            conection.session.delete(corrida)
+            conection.session.commit()
+            return True
+
+        return False
+    
+    @classmethod
+    @db_connector
+    def verifica_motoboys_status(cls, connection):
+        """Verifica status dos motoboys no banco de dados"""
+        motoboys = connection.session.query(G4DeliveryMotoboy).all()
+        return [motoboy.to_dict() for motoboy in motoboys] if motoboys else []
