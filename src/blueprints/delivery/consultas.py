@@ -7,6 +7,7 @@ from ..delivery.tabelas import (
     G4DeliveryClientes,
     G4DeliveryContabilizar,
 )
+from src.database.models.user import UserDelivery
 from ..enderecos.google_api import ConsultasGoogleAPI
 from decimal import Decimal, InvalidOperation
 from datetime import datetime
@@ -14,6 +15,53 @@ from datetime import datetime
 
 class ConsultasDelivery:
     """Faz as Consultas para g4 delivery"""
+
+    @classmethod
+    @db_connector
+    def editar_motoboy(cls, connection, id, **dados):
+        motoboy = connection.session.query(G4DeliveryMotoboy).filter_by(id=id).first()
+
+        if not motoboy:
+            return False
+
+        for campo, valor in dados.items():
+            setattr(motoboy, campo, valor)
+
+        connection.session.commit()
+        return True
+
+    @classmethod
+    @db_connector
+    def deletar_motoboy(cls, connection, id):
+        """
+        Deleta um motoboy e o usuário vinculado via CPF
+        """
+
+        motoboy = (
+            connection.session
+            .query(G4DeliveryMotoboy)
+            .filter_by(id=id)
+            .first()
+        )
+
+        if not motoboy:
+            return False
+
+        usuario = (
+            connection.session
+            .query(UserDelivery)
+            .filter_by(cpf=motoboy.cpf)
+            .first()
+        )
+
+        if usuario:
+            connection.session.delete(usuario)
+
+        connection.session.delete(motoboy)
+        connection.session.commit()
+
+        return True
+
     @classmethod
     @db_connector
     def busca_fretes_motoboy(cls, connection, motoboy_id):
@@ -188,13 +236,14 @@ class ConsultasDelivery:
 
     @classmethod
     @db_connector
-    def cadastrar_motoboy(cls, connection, nome, telefone, cpf, placa):
+    def cadastrar_motoboy(cls, connection, nome, telefone, cpf, placa, pix):
         """Cadastra um motoboy"""
         motoboy = G4DeliveryMotoboy(
             nome=nome,
             telefone=telefone,
             cpf=cpf,
             placa=placa,
+            pix=pix
         )
 
         connection.session.add(motoboy)
@@ -517,7 +566,7 @@ class ConsultasDelivery:
             return True
 
         return False
-    
+
     @classmethod
     @db_connector
     def verifica_motoboys_status(cls, connection):

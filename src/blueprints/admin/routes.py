@@ -31,9 +31,50 @@ def motoboys():
         return redirect(url_for("auth.login"))
 
     moto_boy = ConsultasDelivery.busca_motoboys()
-    # print(f"Empresas encontradas: {moto_boy}")
+
     return render_template("deshboards/motoboy.html", user=user, moto_boy=moto_boy)
 
+@login_required
+@admin_app.route("/editar_motoboy", methods=["POST"])
+def editar_motoboy():
+    user = session.get("user")
+    print(f"Usuário na sessão: {user}")
+
+    if not user or user.get("role") != "admin_delivery":
+        return redirect(url_for("auth.login"))
+
+    id = request.form.get("id")
+    print(f"Editando motoboy com id: {id}")
+    if not id:
+        return redirect(url_for("admin_app.motoboys"))
+
+    dados = {
+        "nome": request.form.get("nome"),
+        "telefone": request.form.get("telefone"),
+        "cpf": request.form.get("cpf"),
+        "placa": request.form.get("placa"),
+    }
+
+    # remove campos vazios
+    dados = {k: v for k, v in dados.items() if v}
+
+    ConsultasDelivery.editar_motoboy(id=id, **dados)
+
+    return redirect(url_for("admin_app.motoboys"))
+
+@login_required
+@admin_app.route("/deletar_motoboy", methods=["POST"])
+def deletar_motoboy():
+    user = session.get("user")
+    print(f"Usuário na sessão: {user}")
+    if not user or user.get("role") != "admin_delivery":
+        return redirect(url_for("auth.login"))
+
+    id = request.form.get("id")
+    print(f"Deletando motoboy com id: {id}")
+    ConsultasDelivery.deletar_motoboy(id)
+
+    return redirect(url_for("admin_app.motoboys"))
 
 @login_required
 @admin_app.route("/delivery", methods=["GET", "POST"])
