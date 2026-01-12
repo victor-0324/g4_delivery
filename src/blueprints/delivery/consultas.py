@@ -272,6 +272,38 @@ class ConsultasDelivery:
         )
 
         return livres if livres else None
+    
+    @classmethod
+    @db_connector
+    def busca_mot_nome(cls, connection, nome):
+        """Retorna motoboy filtrando pelo nome"""
+        motoboy = connection.session.query(G4DeliveryMotoboy).filter_by(nome=nome).first()
+        return motoboy.to_dict() if motoboy else None
+    
+    @classmethod
+    @db_connector
+    def Contabilizar_manual(cls, conection, nome, valor, id_mensagem, hora_pedido, via):
+        """Contabiliza o valor da corrida para o motoboy"""
+        motoboy = ConsultasDelivery.busca_mot_nome(nome)
+        motoboy_id = motoboy["id"]
+        existente = (
+            conection.session.query(G4DeliveryContabilizar)
+            .filter_by(id_mensagem=id_mensagem)
+            .first()
+        )
+        if existente:
+            return False
+        registro = G4DeliveryContabilizar(
+            motoboy_id=motoboy_id,
+            valor=valor,
+            id_mensagem=id_mensagem,
+            hora_pedido=hora_pedido,
+            via=via,
+            status="aceito",
+        )
+        conection.session.add(registro)
+        conection.session.commit()
+        return True
 
     @classmethod
     @db_connector
@@ -368,7 +400,7 @@ class ConsultasDelivery:
 
     @classmethod
     @db_connector
-    def aceitar_frete(cls, connection, telefone, frete_id):
+    def aceitar_frete(cls, connection, telefone, frete_id, id_mensagem):
         """Motoboy aceita o frete"""
 
         motoboy = (
@@ -391,6 +423,7 @@ class ConsultasDelivery:
 
         frete.motoboy_id = motoboy.id
         frete.status = "aceito"
+        frete.id_mensagem = id_mensagem
         frete.hora_aceite = datetime.now()
 
         motoboy.status = "ocupado"
@@ -544,6 +577,7 @@ class ConsultasDelivery:
             valor=valor,
             id_mensagem=id_mensagem,
             via=via,
+            hora_pedido=datetime.now(),
             status="aceito",
         )
         conection.session.add(registro)
@@ -573,3 +607,48 @@ class ConsultasDelivery:
         """Verifica status dos motoboys no banco de dados"""
         motoboys = connection.session.query(G4DeliveryMotoboy).all()
         return [motoboy.to_dict() for motoboy in motoboys] if motoboys else []
+
+
+    @classmethod
+    @db_connector
+    def busca_fretes_periodo(cls, connection, motoboy_id, data_inicio, data_fim):
+        """Busca fretes do motoboy entre datas"""
+        return (connection.session.query(G4DeliveryContabilizar)
+                .filter(
+                    G4DeliveryContabilizar.status == 'aceito',
+                    G4DeliveryContabilizar.motoboy_id == motoboy_id,
+                    G4DeliveryContabilizar.hora_pedido >= data_inicio,
+                    G4DeliveryContabilizar.hora_pedido <= data_fim
+                )
+                .all())
+    
+
+    @classmethod
+    @db_connector
+    def busca_comissao_padrao(cls, connection, telefone):
+        motorista = (
+            connection.session.query(G4DeliveryMotoboy)
+            .filter(G4DeliveryMotoboy.telefone == telefone)
+            .first()
+        )
+
+        etiquetas_brutas = motorista.etiqueta or []
+
+        etiquetas = {
+            str(item[0])
+            for item in etiquetas_brutas
+            if isinstance(item, (list, tuple)) and item
+        }
+
+        convenio_social = "4" in etiquetas
+
+        if "1" in etiquetas:
+            comissao = 5
+        elif "2" in etiquetas:
+            comissao = 7
+        elif "3" in etiquetas:
+            comissao = 10
+        else:
+            comissao = 15
+
+        return comissao, convenio_social

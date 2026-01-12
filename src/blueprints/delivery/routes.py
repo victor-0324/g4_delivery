@@ -7,14 +7,19 @@ from flask import (
     redirect,
     url_for,
     flash,
+    send_file,
 )
 import requests
+import zipfile
 from flask_login import login_required, login_user
 from ..delivery.consultas import ConsultasDelivery
 from .src.functions import fila_motoristas
-# from ..enderecos.google_api import ConsultasGoogleAPI
+import os
+from .pdf_html import format_number
+from jinja2 import Environment
 from src.database.querys import UserQuerys
 from .src.functions import verificar_usuarios
+from datetime import datetime
 
 delivery_app = Blueprint(
     "delivery_app",
@@ -29,6 +34,7 @@ def public_endpoint(function):
     """Decorator for public routes"""
     function.is_public = True
     return function
+
 
 @login_required
 @delivery_app.route("/", methods=["GET"])
@@ -49,6 +55,7 @@ def painel_empresa():
         empresa=empresa,
     )
 
+
 @public_endpoint
 @delivery_app.route("/gerar_pix", methods=["GET"])
 def gerar_pix():
@@ -59,23 +66,24 @@ def gerar_pix():
 
     payload = {
         "qrCode": {
-        "encodedImage": "iVBORw0KGgoAAAANSUhEUgAAAcIAAAHCAQAAAABUY/ToAAADD0lEQVR4Xu2TwY7bMBBDffP//1E/yzd3+Ugp2QKFi710AnDiWCMOH3OQctw/rF/Hn8q/VsmnKvlUJZ+q5FOVfKr/Rl4Hdbo5v4RTs6/d+dXxqPcSS8nBpI2nPi/aWZIS4qDlLzmYjMpziXOQGSeoVfbiS44nMwKH2imHZ6/fKPkBpI791JZHV+C15VvyQ8g7qh61GpsytPzLWXI0yaFr9viJs+RfPwPIXT79fQt8E+QGyz1IlRxLcr44ZJHhWvsjW8K0OKPkZFKS3mAxe8dwwa9ebcmxpC0B+QbN1UjPbVA0ISXnkuoXqBXeeIAXn4CSc0lKkA9ZCSzOsWQqY1XJwaQmYlcTj8h9O+itlpxNsrl01pw+VtHqTUfBBl9yLilQOyMnK5IZAZjlCFxyMIkGJICeU88byJq3JWeT6titsc0xkXYJsqHkdHIjy2NSkmz6sPVlAS45mQSTItED4jwSuHqnq0rOJeWSxat8rHKS5D5XIhej5GRSgl5YebJ5H+SSIJScS178Y/exx4LqnMO3IIrRkoNJ/s84bllsx8PWDQSZJUeTZi7hy8+Zo8SbtybOKjmW3ITNHi3lXlcgi5WSo8lXbY9FtQ5UZBSZSs4lgUGAZDEszXa3IjCVnE2+2bXhwR8fjeYSCSg5mLzY2+55VmXY6biElBxNRoqXHMboQg8UxTtfesmxJGXz4k2bWDx7W0tOJj3Ve3cwNhGyNP/jS44mbTDGjJFaK96FWGvJsaSVw4yMEsRpFJYBDZeh5HhSFOO9cxTznRi+5GxyCT7ncGSZA00OYMnBJIzQd2t2HuBBKjmelPHWQa93lOx3kr88JUeToWzfR2/MATIvqORscoMQRlcRYc93oeRYcpUSDDroVky2xG2l5GQyp7wvAjyEJm6lLUVSycGkOr8vOxURRF4C7Uh6ydGkpnIxzfN2PXYgAr6SH0H6hcM9WUYvPUqgSs4n49dUL6FOQzGTpeRk0tJl3Bm+DdDk7Lz4S84l47t06snQ1rDcURxkvORY8kdV8qlKPlXJpyr5VCWf6sPI3wc212PuTq9ZAAAAAElFTkSuQmCC",
-        "payload": "00020126580014br.gov.bcb.pix0136676cd7d6-8e86-4781-9758-275657a45c5d5204000053039865802BR5914G4 MOBILE LTDA6012Sao Lourenco62290525G4MOBILE00000000904410ASA6304316F"
+            "encodedImage": "iVBORw0KGgoAAAANSUhEUgAAAcIAAAHCAQAAAABUY/ToAAADD0lEQVR4Xu2TwY7bMBBDffP//1E/yzd3+Ugp2QKFi710AnDiWCMOH3OQctw/rF/Hn8q/VsmnKvlUJZ+q5FOVfKr/Rl4Hdbo5v4RTs6/d+dXxqPcSS8nBpI2nPi/aWZIS4qDlLzmYjMpziXOQGSeoVfbiS44nMwKH2imHZ6/fKPkBpI791JZHV+C15VvyQ8g7qh61GpsytPzLWXI0yaFr9viJs+RfPwPIXT79fQt8E+QGyz1IlRxLcr44ZJHhWvsjW8K0OKPkZFKS3mAxe8dwwa9ebcmxpC0B+QbN1UjPbVA0ISXnkuoXqBXeeIAXn4CSc0lKkA9ZCSzOsWQqY1XJwaQmYlcTj8h9O+itlpxNsrl01pw+VtHqTUfBBl9yLilQOyMnK5IZAZjlCFxyMIkGJICeU88byJq3JWeT6titsc0xkXYJsqHkdHIjy2NSkmz6sPVlAS45mQSTItED4jwSuHqnq0rOJeWSxat8rHKS5D5XIhej5GRSgl5YebJ5H+SSIJScS178Y/exx4LqnMO3IIrRkoNJ/s84bllsx8PWDQSZJUeTZi7hy8+Zo8SbtybOKjmW3ITNHi3lXlcgi5WSo8lXbY9FtQ5UZBSZSs4lgUGAZDEszXa3IjCVnE2+2bXhwR8fjeYSCSg5mLzY2+55VmXY6biElBxNRoqXHMboQg8UxTtfesmxJGXz4k2bWDx7W0tOJj3Ve3cwNhGyNP/jS44mbTDGjJFaK96FWGvJsaSVw4yMEsRpFJYBDZeh5HhSFOO9cxTznRi+5GxyCT7ncGSZA00OYMnBJIzQd2t2HuBBKjmelPHWQa93lOx3kr88JUeToWzfR2/MATIvqORscoMQRlcRYc93oeRYcpUSDDroVky2xG2l5GQyp7wvAjyEJm6lLUVSycGkOr8vOxURRF4C7Uh6ydGkpnIxzfN2PXYgAr6SH0H6hcM9WUYvPUqgSs4n49dUL6FOQzGTpeRk0tJl3Bm+DdDk7Lz4S84l47t06snQ1rDcURxkvORY8kdV8qlKPlXJpyr5VCWf6sPI3wc212PuTq9ZAAAAAElFTkSuQmCC",
+            "payload": "00020126580014br.gov.bcb.pix0136676cd7d6-8e86-4781-9758-275657a45c5d5204000053039865802BR5914G4 MOBILE LTDA6012Sao Lourenco62290525G4MOBILE00000000904410ASA6304316F",
         },
         "value": 100,
         "description": "Churrasco",
-        "scheduleDate": "2026-03-15"
+        "scheduleDate": "2026-03-15",
     }
     headers = {
         "accept": "application/json",
         "content-type": "application/json",
-        "access_token": "$aact_hmlg_000MzkwODA2MWY2OGM3MWRlMDU2NWM3MzJlNzZmNGZhZGY6OjI1MzE3ZmQzLTNhYTUtNDg4MC1iZDdiLWJkNWY3YmMxZTkyYTo6JGFhY2hfNWY1ZGEzMzEtMzI0MC00ZDU1LWFhYTItODViMTJlNWMwNDYz"
+        "access_token": "$aact_hmlg_000MzkwODA2MWY2OGM3MWRlMDU2NWM3MzJlNzZmNGZhZGY6OjI1MzE3ZmQzLTNhYTUtNDg4MC1iZDdiLWJkNWY3YmMxZTkyYTo6JGFhY2hfNWY1ZGEzMzEtMzI0MC00ZDU1LWFhYTItODViMTJlNWMwNDYz",
     }
 
     response = requests.post(url, json=payload, headers=headers)
 
     print(response.text)
     return jsonify(response.json())
+
 
 @login_required
 @delivery_app.route("/entregadores", methods=["GET"])
@@ -88,7 +96,7 @@ def entregadores():
     motoboy = ConsultasDelivery.buscar_por_cpf(user["cpf"])
     fretes = ConsultasDelivery.busca_fretes_motoboy(motoboy["id"])
     fila = fila_motoristas()
-    print("fila:", fila)
+
     corridas = []
     receita_bruta = 0.0
 
@@ -96,13 +104,15 @@ def entregadores():
         valor = float(f.get("valor", 0))
         receita_bruta += valor
 
-        corridas.append({
-            "id": f.get("id"),
-            "valor": valor,
-            "data_hora": f.get("hora_aceite") or f.get("hora_pedido"),
-            "via": f.get("via"),
-            "status": f.get("status"),
-        })
+        corridas.append(
+            {
+                "id": f.get("id"),
+                "valor": valor,
+                "data_hora": f.get("hora_aceite") or f.get("hora_pedido"),
+                "via": f.get("via"),
+                "status": f.get("status"),
+            }
+        )
 
     total_corridas = len(corridas)
 
@@ -252,7 +262,16 @@ def pedir_frete():
     usuario = data.get("usuario")
     via = "WhatsApp"
 
-    frete_id = ConsultasDelivery.Contabilizar(telefone, valor, retirada_lat, retirada_lon, entrega_lat, entrega_lon, usuario, via)
+    frete_id = ConsultasDelivery.Contabilizar(
+        telefone,
+        valor,
+        retirada_lat,
+        retirada_lon,
+        entrega_lat,
+        entrega_lon,
+        usuario,
+        via,
+    )
 
     motoboy = ConsultasDelivery.buscar_motoboy_frete(frete_id)
 
@@ -270,8 +289,8 @@ def aceitar_frete():
     data = request.get_json()
     telefone = data.get("telefone")
     frete_id = data.get("frete_id")
-    print(data)
-    frete = ConsultasDelivery.aceitar_frete(telefone, frete_id)
+    id_mensagem = data.get("id_mensagem")
+    frete = ConsultasDelivery.aceitar_frete(telefone, frete_id, id_mensagem)
     if not frete:
         return jsonify({"erro": "Frete não encontrado"}), 400
 
@@ -325,6 +344,18 @@ def atualizar_status():
     ConsultasDelivery.atualizar_status(telefone, status)
     return jsonify({"response": "Status atualizado com sucesso"}), 200
 
+@public_endpoint
+@delivery_app.route("/contabilizar_manual", methods=["POST"])
+def contabilizar_manual():
+    data_json = request.get_json()
+    nome = data_json.get("nome")
+    valor = data_json.get("valor")
+    id_mensagem = data_json.get("id_mensagem")
+    hora_pedido = data_json.get("data_hora")
+    via = data_json.get("via")
+    ConsultasDelivery.Contabilizar_manual(nome, valor, id_mensagem, hora_pedido, via)
+
+    return jsonify({"response": "Contabilizado com sucesso"}), 200
 
 @public_endpoint
 @delivery_app.route("/contabilizar", methods=["POST"])
@@ -368,3 +399,177 @@ def verificar_livre():
         return jsonify({"status": "Livre"})
 
     return jsonify({"status": "Ocupado"})
+
+
+# FECHAMENTO DO MOTOBOY
+
+def get_public_url(path=""):
+    proto = request.headers.get("X-Forwarded-Proto", request.scheme)
+    host = request.headers.get("X-Forwarded-Host", request.host)
+    return f"{proto}://{host}{path}"
+
+
+DIRETORIO_FATURAS = os.path.join(os.path.dirname(__file__), "faturas_motoboys")
+os.makedirs(DIRETORIO_FATURAS, exist_ok=True)
+
+
+@public_endpoint
+@delivery_app.route("/recebe_valores", methods=["POST"])
+def recebe_valores():
+    """
+    POST → gera faturas dos motoboys
+    """
+
+    data_json = request.get_json() or {}
+
+    if not data_json.get("data_inicio") or not data_json.get("data_fim"):
+        return jsonify({"erro": "data_inicio e data_fim são obrigatórias"}), 400
+
+    # Converte datas
+    try:
+        data_inicio = datetime.strptime(data_json["data_inicio"], "%Y-%m-%d")
+        data_fim = datetime.strptime(
+            data_json["data_fim"], "%Y-%m-%d"
+        ).replace(hour=23, minute=59, second=59)
+    except ValueError:
+        return jsonify({"erro": "Formato de data inválido (use YYYY-MM-DD)"}), 400
+
+    # Carregar template
+    caminho_template = os.path.join(os.path.dirname(__file__), "fatura.html")
+    with open(caminho_template, "r", encoding="utf-8") as f:
+        modelo_html = f.read()
+
+    env = Environment()
+    env.filters["format_number"] = format_number
+    template = env.from_string(modelo_html)
+
+    # Limpa arquivos antigos
+    for arquivo in os.listdir(DIRETORIO_FATURAS):
+        if arquivo.endswith((".html", ".zip")):
+            os.remove(os.path.join(DIRETORIO_FATURAS, arquivo))
+
+    motoboys = ConsultasDelivery.busca_motoboys()
+
+    for motoboy in motoboys:
+        motoboy_id = motoboy["id"]
+        telefone = motoboy["telefone"]
+        nome = motoboy["nome"]
+
+        fretes = ConsultasDelivery.busca_fretes_periodo(
+            motoboy_id=motoboy_id,
+            data_inicio=data_inicio,
+            data_fim=data_fim,
+        )
+
+        if not fretes:
+            continue
+
+        comissao_padrao, convenio_social = (
+            ConsultasDelivery.busca_comissao_padrao(telefone)
+        )
+
+        detalhes = []
+        valor_total_corridas = 0.0
+        total_descontos = 0.0
+
+        for f in fretes:
+            valor = float(f.valor)
+            data_formatada = f.hora_pedido.strftime("%d/%m/%Y %H:%M")
+
+            if valor < 0:
+                total_descontos += abs(valor)
+                negativo = True
+                valor_exibido = abs(valor)
+                comissao_corrida = -abs(valor)
+            else:
+                valor_total_corridas += valor
+                negativo = False
+                valor_exibido = valor
+                comissao_corrida = valor * comissao_padrao / 100
+
+            detalhes.append({
+                "valor_corrida": format_number(valor_exibido),
+                "comissao_corrida": format_number(comissao_corrida),
+                "data": data_formatada,
+                "via": f.via,
+                "negativo": negativo,
+            })
+
+        detalhes.sort(
+            key=lambda x: datetime.strptime(x["data"], "%d/%m/%Y %H:%M")
+        )
+
+        # Regra de comissão reduzida
+        if comissao_padrao == 15 and valor_total_corridas >= 2000:
+            comissao_padrao = 10
+
+        comissao_calculada = (
+            valor_total_corridas * comissao_padrao / 100
+        ) - total_descontos
+
+        comissao_minima_aplicada = False
+
+        valor_total_comissao = comissao_calculada
+
+        if convenio_social:
+            valor_total_comissao += 13
+
+        html = template.render(
+            nome=nome,
+            total_corridas=len(fretes),
+            valor_total_corridas=format_number(valor_total_corridas),
+            valor_total_comissao=format_number(valor_total_comissao),
+            detalhes_corridas=detalhes,
+            convenio_social=convenio_social,
+            comissao_minima_aplicada=comissao_minima_aplicada,
+        )
+
+        caminho_html = os.path.join(DIRETORIO_FATURAS, f"{nome}.html")
+        with open(caminho_html, "w", encoding="utf-8") as f:
+            f.write(html)
+
+    # Criar ZIP
+    zip_path = os.path.join(DIRETORIO_FATURAS, "faturas.zip")
+    with zipfile.ZipFile(zip_path, "w") as zipf:
+        for arquivo in os.listdir(DIRETORIO_FATURAS):
+            if arquivo.endswith(".html"):
+                zipf.write(
+                    os.path.join(DIRETORIO_FATURAS, arquivo),
+                    arquivo
+                )
+
+    download_url = get_public_url("/g4delivery/baixar_faturas")
+
+    return jsonify({
+        "status": "sucesso",
+        "mensagem": "Faturas geradas com sucesso",
+        "download": download_url,
+    }), 200
+
+
+
+@public_endpoint
+@delivery_app.route("/baixar_faturas", methods=["GET"])
+def baixar_faturas():
+    zip_path = os.path.join(DIRETORIO_FATURAS, "faturas.zip")
+
+    if not os.path.exists(zip_path):
+        return jsonify({"erro": "As faturas ainda não foram geradas"}), 404
+
+    return send_file(
+        zip_path,
+        mimetype="application/zip",
+        as_attachment=True,
+        download_name="faturas.zip",
+    )
+
+@public_endpoint
+@delivery_app.route("/download/<path:filename>")
+def download_pdf(filename):
+    caminho_pdf = os.path.join("src/pdfs-fechamento", filename)
+
+    # Verifica se o arquivo existe antes de enviar
+    if os.path.exists(caminho_pdf):
+        return send_file(caminho_pdf, as_attachment=True)
+    else:
+        return "Arquivo não encontrado.", 404

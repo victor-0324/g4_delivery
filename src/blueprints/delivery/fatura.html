@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fatura Semanal G4 Delivery</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #ffffff;
+            color: #333;
+        }
+
+        img {
+            width: 150px;
+            display: block;
+            margin: 0 auto 10px;
+        }
+
+        header {
+            background: linear-gradient(90deg, #004080, #0066cc);
+            color: white;
+            padding: 5px 0;
+            border-radius: 1rem;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        header h1 {
+            font-size: 36px;
+            font-weight: 700;
+        }
+
+        header p {
+            font-size: 18px;
+            margin-top: 10px;
+            font-weight: 400;
+        }
+
+        .detalhes {
+            margin: 20px 0;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .detalhes ul {
+            display: flex;
+            justify-content: space-between;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+        }
+
+        .detalhes li {
+            text-align: left;
+            flex: 1;
+            padding: 0 10px;
+        }
+
+        .detalhes strong {
+            display: block;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .detalhes p {
+            margin: 5px 0 0;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .negativo {
+            color: #a01e10;
+            font-weight: bold;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 30px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        table th {
+            background-color: #004080;
+            color: white;
+            padding: 12px;
+            font-size: 16px;
+            text-align: center;
+        }
+
+        table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        table tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 14px;
+            color: #004080;
+            padding: 20px 0;
+            background-color: #004080;
+            color: white;
+        }
+
+        footer p {
+            margin: 5px 0;
+        }
+
+        .tarja-pix {
+            background-color: #0066cc;
+            color: rgb(254, 254, 254);
+            padding: 10px;
+            text-align: left;
+            font-size: 16px;
+            margin-top: 10px;
+            font-weight: 600;
+            border-radius: 2px;
+        }
+
+        .tarja-pix p {
+            margin: 0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <img src=>
+        <h1>Fatura Semanal - G4 Delivery</h1>
+        <h2>{{ nome }}</h2>
+    </header>
+
+    {% if convenio_social %}
+    <div style="
+        background-color:#ffe6e6;
+        color:#c0392b;
+        padding:10px;
+        margin-top:15px;
+        border-radius:5px;
+        font-weight:bold;
+        text-align:center;
+    ">
+        ⚠ Convênio Social aplicado: acréscimo de R$ 13,00 na comissão
+    </div>
+    {% endif %}
+
+    <div class="detalhes">
+        <ul>
+            <li>
+                <strong>Número de Entregas:</strong>
+                <p>{{ total_corridas }}</p>
+            </li>
+            <li>
+                <strong>Valor Total:</strong>
+                <p>{{ valor_total_corridas }}</p>
+            </li>
+            <li>
+                <strong>Total a Pagar:</strong>
+                <p>{{ valor_total_comissao }}</p>
+            </li>
+        </ul>
+    </div>
+
+    <div class="tarja-pix">
+        <p>Pagamento via PIX disponível. Chave: contatog4mobile@gmail.com</p>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Valor</th>
+                <th>Comissão</th>
+                <th>Data</th>
+                <th>Via</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for corrida in detalhes_corridas %}
+            <tr class="{% if corrida.negativo %}negativo{% endif %}">
+                <td>{{ corrida.valor_corrida }}</td>
+                <td>{{ corrida.comissao_corrida }}</td>
+                <td>{{ corrida.data }}</td>
+                <td>{{ corrida.via }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <footer>
+        <p>Muito obrigado pela sua colaboração!</p>
+        <p>&copy; 2025 G4 Delivery - Todos os direitos reservados</p>
+    </footer>
+
+</body>
+
+</html>
