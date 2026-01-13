@@ -37,21 +37,13 @@ class ConsultasDelivery:
         Deleta um motoboy e o usuário vinculado via CPF
         """
 
-        motoboy = (
-            connection.session
-            .query(G4DeliveryMotoboy)
-            .filter_by(id=id)
-            .first()
-        )
+        motoboy = connection.session.query(G4DeliveryMotoboy).filter_by(id=id).first()
 
         if not motoboy:
             return False
 
         usuario = (
-            connection.session
-            .query(UserDelivery)
-            .filter_by(cpf=motoboy.cpf)
-            .first()
+            connection.session.query(UserDelivery).filter_by(cpf=motoboy.cpf).first()
         )
 
         if usuario:
@@ -139,7 +131,7 @@ class ConsultasDelivery:
     @classmethod
     @db_connector
     def retirar_credito_empresa(cls, connection, telefone, valor):
-        """Retira crédito da empresa, sem permitir saldo negativo."""
+        """Retira crédito da empresa, permitindo saldo negativo."""
         empresa = (
             connection.session.query(G4DeliveryEmpresas)
             .filter_by(telefone=telefone)
@@ -156,10 +148,7 @@ class ConsultasDelivery:
         if valor <= 0:
             return {"erro": "O valor deve ser maior que zero"}
 
-        # Verificar saldo
-        if empresa.credito < valor:
-            return {"erro": "Saldo insuficiente"}
-
+        # Debita mesmo que o saldo fique negativo
         empresa.credito -= valor
         connection.session.commit()
 
@@ -239,11 +228,7 @@ class ConsultasDelivery:
     def cadastrar_motoboy(cls, connection, nome, telefone, cpf, placa, pix):
         """Cadastra um motoboy"""
         motoboy = G4DeliveryMotoboy(
-            nome=nome,
-            telefone=telefone,
-            cpf=cpf,
-            placa=placa,
-            pix=pix
+            nome=nome, telefone=telefone, cpf=cpf, placa=placa, pix=pix
         )
 
         connection.session.add(motoboy)
@@ -272,14 +257,16 @@ class ConsultasDelivery:
         )
 
         return livres if livres else None
-    
+
     @classmethod
     @db_connector
     def busca_mot_nome(cls, connection, nome):
         """Retorna motoboy filtrando pelo nome"""
-        motoboy = connection.session.query(G4DeliveryMotoboy).filter_by(nome=nome).first()
+        motoboy = (
+            connection.session.query(G4DeliveryMotoboy).filter_by(nome=nome).first()
+        )
         return motoboy.to_dict() if motoboy else None
-    
+
     @classmethod
     @db_connector
     def Contabilizar_manual(cls, conection, nome, valor, id_mensagem, hora_pedido, via):
@@ -558,7 +545,6 @@ class ConsultasDelivery:
         motorista.status = status
         connection.session.commit()
 
-
     @classmethod
     @db_connector
     def adc_frete(cls, conection, telefone, valor, id_mensagem, via):
@@ -608,31 +594,31 @@ class ConsultasDelivery:
         motoboys = connection.session.query(G4DeliveryMotoboy).all()
         return [motoboy.to_dict() for motoboy in motoboys] if motoboys else []
 
-
     @classmethod
     @db_connector
     def busca_fretes_periodo(cls, connection, motoboy_id, data_inicio, data_fim):
         """Busca fretes do motoboy entre datas"""
-        return (connection.session.query(G4DeliveryContabilizar)
-                .filter(
-                    G4DeliveryContabilizar.status == 'aceito',
-                    G4DeliveryContabilizar.motoboy_id == motoboy_id,
-                    G4DeliveryContabilizar.hora_pedido >= data_inicio,
-                    G4DeliveryContabilizar.hora_pedido <= data_fim
-                )
-                .all())
-    
+        return (
+            connection.session.query(G4DeliveryContabilizar)
+            .filter(
+                G4DeliveryContabilizar.status == "aceito",
+                G4DeliveryContabilizar.motoboy_id == motoboy_id,
+                G4DeliveryContabilizar.hora_pedido >= data_inicio,
+                G4DeliveryContabilizar.hora_pedido <= data_fim,
+            )
+            .all()
+        )
 
     @classmethod
     @db_connector
     def busca_comissao_padrao(cls, connection, telefone):
-        motorista = (
+        motoboy = (
             connection.session.query(G4DeliveryMotoboy)
             .filter(G4DeliveryMotoboy.telefone == telefone)
             .first()
         )
 
-        etiquetas_brutas = motorista.etiqueta or []
+        etiquetas_brutas = motoboy.etiqueta or []
 
         etiquetas = {
             str(item[0])
@@ -643,12 +629,7 @@ class ConsultasDelivery:
         convenio_social = "4" in etiquetas
 
         if "1" in etiquetas:
-            comissao = 5
-        elif "2" in etiquetas:
             comissao = 7
-        elif "3" in etiquetas:
-            comissao = 10
         else:
-            comissao = 15
-
+            comissao = 10
         return comissao, convenio_social

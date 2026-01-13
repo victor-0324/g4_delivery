@@ -499,9 +499,6 @@ def recebe_valores():
             key=lambda x: datetime.strptime(x["data"], "%d/%m/%Y %H:%M")
         )
 
-        # Regra de comissão reduzida
-        if comissao_padrao == 15 and valor_total_corridas >= 2000:
-            comissao_padrao = 10
 
         comissao_calculada = (
             valor_total_corridas * comissao_padrao / 100
