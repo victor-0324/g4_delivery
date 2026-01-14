@@ -56,16 +56,17 @@
                                 <td>{{ m.hora_livre or '-' }}</td>
                                 <td>{{ m.etiqueta or '-' }}</td>
                                 <td>
-                                 <button
-                                    class="btn btn-sm btn-primary"
-                                    onclick="abrirModalMotoboy(this)"
-                                    data-id="{{ m.id }}"
-                                    data-nome="{{ m.nome }}"
-                                    data-telefone="{{ m.telefone }}"
-                                    data-cpf="{{ m.cpf }}"
-                                    data-placa="{{ m.placa }}"
+                                    <button
+                                        class="btn btn-sm btn-primary"
+                                        onclick="abrirModalMotoboy(this)"
+                                        data-id="{{ m.id }}"
+                                        data-nome="{{ m.nome }}"
+                                        data-telefone="{{ m.telefone }}"
+                                        data-cpf="{{ m.cpf }}"
+                                        data-placa="{{ m.placa }}"
+                                        data-status="{{ m.status }}"
                                     >
-                                    Editar
+                                        Editar
                                     </button>
                                 </td>
                             </tr>
@@ -111,6 +112,14 @@
               <label>CPF</label>
               <input type="text" class="form-control" name="cpf" id="motoboy-cpf">
             </div>
+            <div class="col-md-6">
+                <label>Status</label>
+                <select class="form-select" name="status" id="motoboy-status">
+                    <option value="ocupado">Ocupado</option>
+                    <option value="off">Offline</option>
+                    <option value="livre">Livre</option>
+                </select>
+            </div>
 
             <div class="col-md-6">
               <label>Placa</label>
@@ -120,22 +129,25 @@
         </div>
 
         <div class="modal-footer justify-content-between">
-          <button type="submit" class="btn btn-success">Salvar</button>
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-success">Salvar</button>
         </div>
       </form>
 
       <!-- FORM DE DELETAR (fora do outro form) -->
       <form method="POST"
-            action="{{ url_for('admin_app.deletar_motoboy') }}"
+            action="{{ url_for('admin_app.desativar_user') }}"
             class="p-3 border-top">
-        <input type="hidden" name="id" id="motoboy-id-delete">
-        <button type="submit"
-                class="btn btn-danger w-100"
-                onclick="return confirm('Tem certeza que deseja deletar este motoboy?')">
-          Deletar Motoboy
-        </button>
-      </form>
+
+            <input type="hidden" name="id" id="motoboy-id-delete">
+
+            <button
+                id="btn-status-user"
+                type="submit"
+                class="btn w-100">
+                Carregando status...
+            </button>
+        </form>
 
     </div>
   </div>
@@ -162,23 +174,57 @@
     });
 
   function abrirModalMotoboy(btn) {
-        const modalEl = document.getElementById('modalEditarMotoboy');
-        const modal = new bootstrap.Modal(modalEl);
+    const modalEl = document.getElementById('modalEditarMotoboy');
+    const modal = new bootstrap.Modal(modalEl);
 
-        const fields = ['id', 'nome', 'telefone', 'cpf', 'placa'];
+    const fields = ['id', 'nome', 'telefone', 'cpf', 'placa'];
 
-        fields.forEach(field => {
-            const input = document.getElementById(`motoboy-${field}`);
-            if (input) {
+    fields.forEach(field => {
+        const input = document.getElementById(`motoboy-${field}`);
+        if (input) {
             input.value = btn.dataset[field] ?? '';
-            }
-        });
-
-        // id usado no delete
-        document.getElementById('motoboy-id-delete').value = btn.dataset.id;
-
-        modal.show();
         }
+    });
+
+    const statusSelect = document.getElementById('motoboy-status');
+    if (statusSelect && btn.dataset.status) {
+        statusSelect.value = btn.dataset.status;
+    }
+    document.getElementById('motoboy-id-delete').value = btn.dataset.id;
+
+    // 🔥 BUSCAR STATUS PELO CPF
+    const cpf = btn.dataset.cpf;
+    const statusBtn = document.getElementById('btn-status-user');
+
+    statusBtn.disabled = true;
+    statusBtn.className = 'btn btn-secondary w-100';
+    statusBtn.innerText = 'Verificando status...';
+
+    fetch(`/admin/motoboy/status?cpf=${cpf}`)
+    .then(res => res.json())
+    .then(data => {
+        const statusBtn = document.getElementById('btn-status-user');
+
+        statusBtn.disabled = false; // 🔥 AGORA ENVIA POST
+
+        if (!data.exists) {
+            statusBtn.className = 'btn btn-secondary w-100';
+            statusBtn.innerText = 'Usuário não encontrado';
+            statusBtn.disabled = true;
+            return;
+        }
+
+        if (data.is_active) {
+            statusBtn.className = 'btn btn-danger w-100';
+            statusBtn.innerText = 'Desativar Usuário';
+        } else {
+            statusBtn.className = 'btn btn-success w-100';
+            statusBtn.innerText = 'Ativar Usuário';
+        }
+    });
+
+    modal.show();
+}
 </script>
 
 <!-- Seus outros scripts -->

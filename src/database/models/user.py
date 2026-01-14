@@ -75,6 +75,7 @@ class UserDelivery(UserMixin, Base):
             "role": self.role,
             "created_on": self.created_on,
             "last_login": self.last_login,
+            "is_active": self.is_active,
         }
 
     def __repr__(self):

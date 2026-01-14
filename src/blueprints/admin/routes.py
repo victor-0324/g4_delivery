@@ -6,6 +6,7 @@ from flask import (
     session,
     request,
     flash,
+    jsonify,
 )
 
 from ..delivery.consultas import ConsultasDelivery
@@ -20,6 +21,36 @@ def public_endpoint(function):
     function.is_public = True
     return function
 
+@login_required
+@admin_app.route("/desativar", methods=["POST"])
+def desativar_user():
+    """Desativa um motorista com base no ID fornecido."""
+    user = session.get("user")
+    if not user or user.get("role") != "admin_delivery":
+        return jsonify({"error": "Acesso não autorizado."}), 403
+
+    id = request.form.get("id")
+    print(f"Desativando motoboy com id: {id}")
+    ConsultasDelivery.ativa_desativa_user(id)
+
+    return redirect(url_for("admin_app.motoboys"))
+
+@admin_app.route("/motoboy/status")
+def status_motoboy():
+    cpf = request.args.get("cpf")
+
+    if not cpf:
+        return jsonify({"error": "CPF não informado"}), 400
+
+    user = ConsultasDelivery.user_por_cpf(cpf)
+    print(f"Usuário encontrado: {user}")
+    if not user:
+        return jsonify({"exists": False})
+
+    return jsonify({
+        "exists": True,
+        "is_active": user['is_active']
+    })
 
 @login_required
 @admin_app.route("/motoboys", methods=["GET"])
@@ -53,6 +84,7 @@ def editar_motoboy():
         "telefone": request.form.get("telefone"),
         "cpf": request.form.get("cpf"),
         "placa": request.form.get("placa"),
+        "status": request.form.get("status"),
     }
 
     # remove campos vazios
@@ -62,19 +94,20 @@ def editar_motoboy():
 
     return redirect(url_for("admin_app.motoboys"))
 
-@login_required
-@admin_app.route("/deletar_motoboy", methods=["POST"])
-def deletar_motoboy():
-    user = session.get("user")
-    print(f"Usuário na sessão: {user}")
-    if not user or user.get("role") != "admin_delivery":
-        return redirect(url_for("auth.login"))
+# @login_required
+# @admin_app.route("/deletar_motoboy", methods=["POST"])
+# def deletar_motoboy():
+#     user = session.get("user")
+#     print(f"Usuário na sessão: {user}")
+#     if not user or user.get("role") != "admin_delivery":
+#         return redirect(url_for("auth.login"))
 
-    id = request.form.get("id")
-    print(f"Deletando motoboy com id: {id}")
-    ConsultasDelivery.deletar_motoboy(id)
+#     id = request.form.get("id")
+#     print(f"Deletando motoboy com id: {id}")
+#     ConsultasDelivery.deletar_motoboy(id)
 
-    return redirect(url_for("admin_app.motoboys"))
+#     return redirect(url_for("admin_app.motoboys"))
+
 
 @login_required
 @admin_app.route("/delivery", methods=["GET", "POST"])
