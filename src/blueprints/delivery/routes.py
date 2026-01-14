@@ -570,3 +570,46 @@ def download_pdf(filename):
         return send_file(caminho_pdf, as_attachment=True)
     else:
         return "Arquivo não encontrado.", 404
+
+@public_endpoint
+@delivery_app.route("/calcular_rota", methods=["POST"])
+def calcular_rota():
+    data_json = request.get_json()
+
+    retirada_lat = data_json.get("retirada_lat")
+    retirada_lon = data_json.get("retirada_lon")
+    entrega_lat = data_json.get("entrega_lat")
+    entrega_lon = data_json.get("entrega_lon")
+
+    poligono_retirada = ConsultasDelivery.verificar_poligono(
+        float(retirada_lat), float(retirada_lon)
+    )
+
+    poligono_entrega = ConsultasDelivery.verificar_poligono(
+        float(entrega_lat), float(entrega_lon)
+    )
+    valor_retirada = None
+    valor_entrega = None
+
+    if poligono_retirada:
+        valor_retirada = ConsultasDelivery.verificar_valor(poligono_retirada)
+
+    if poligono_entrega:
+        valor_entrega = ConsultasDelivery.verificar_valor(poligono_entrega)
+
+    if valor_retirada and valor_entrega:
+        valor_final = max(float(valor_retirada), float(valor_entrega))
+    elif valor_retirada:
+        valor_final = float(valor_retirada)
+    elif valor_entrega:
+        valor_final = float(valor_entrega)
+    else:
+        return jsonify({
+            "Status": "Endereços fora dos polígonos."
+        }), 201
+
+    return jsonify({
+        "retirada_poligono": poligono_retirada,
+        "entrega_poligono": poligono_entrega,
+        "valor": valor_final
+    }), 200
