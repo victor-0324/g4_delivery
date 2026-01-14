@@ -10,6 +10,7 @@ from flask import (
 )
 
 from ..delivery.consultas import ConsultasDelivery
+from .consultas import ConsultaDados
 from flask_login import login_required
 from ..delivery.src.functions import fila_motoristas
 
@@ -30,27 +31,53 @@ def desativar_user():
         return jsonify({"error": "Acesso não autorizado."}), 403
 
     id = request.form.get("id")
-    print(f"Desativando motoboy com id: {id}")
-    ConsultasDelivery.ativa_desativa_user(id)
+
+    ConsultaDados.ativa_desativa_user(id)
 
     return redirect(url_for("admin_app.motoboys"))
 
-@admin_app.route("/motoboy/status")
-def status_motoboy():
+@login_required
+@admin_app.route("/desativar/empresa", methods=["POST"])
+def desativar_empresa():
+    """Desativa uma empresa com base no ID fornecido."""
+    user = session.get("user")
+    if not user or user.get("role") != "admin_delivery":
+        return jsonify({"error": "Acesso não autorizado."}), 403
+
+    id = request.form.get("id")
+
+    ConsultaDados.ativa_desativa_empresa(id)
+
+    return redirect(url_for("admin_app.delivery"))
+
+@admin_app.route("/consulta/status")
+def consulta_is_active():
     cpf = request.args.get("cpf")
+    empresa = request.args.get("nome")
 
-    if not cpf:
-        return jsonify({"error": "CPF não informado"}), 400
+    if cpf:
+        user = ConsultasDelivery.user_por_cpf(cpf)
+        print(f"Usuário encontrado: {user}")
+        if not user:
+            return jsonify({"exists": False})
 
-    user = ConsultasDelivery.user_por_cpf(cpf)
-    print(f"Usuário encontrado: {user}")
-    if not user:
-        return jsonify({"exists": False})
+        return jsonify({
+            "exists": True,
+            "is_active": user['is_active']
+        })
 
-    return jsonify({
-        "exists": True,
-        "is_active": user['is_active']
-    })
+    elif empresa:
+        user = ConsultaDados.empresa_por_nome(empresa)
+
+        if not user:
+            return jsonify({"exists": False})
+
+        return jsonify({
+            "exists": True,
+            "is_active": user['is_active']
+        })
+
+    return jsonify({"error": "Parâmetros insuficientes."}), 400
 
 @login_required
 @admin_app.route("/motoboys", methods=["GET"])
@@ -94,20 +121,6 @@ def editar_motoboy():
 
     return redirect(url_for("admin_app.motoboys"))
 
-# @login_required
-# @admin_app.route("/deletar_motoboy", methods=["POST"])
-# def deletar_motoboy():
-#     user = session.get("user")
-#     print(f"Usuário na sessão: {user}")
-#     if not user or user.get("role") != "admin_delivery":
-#         return redirect(url_for("auth.login"))
-
-#     id = request.form.get("id")
-#     print(f"Deletando motoboy com id: {id}")
-#     ConsultasDelivery.deletar_motoboy(id)
-
-#     return redirect(url_for("admin_app.motoboys"))
-
 
 @login_required
 @admin_app.route("/delivery", methods=["GET", "POST"])
@@ -123,10 +136,6 @@ def delivery():
         telefone = request.form.get("telefone")
         endereco = request.form.get("endereco")
         credito = request.form.get("credito")
-
-        print(
-            f"Atualizando empresa: id={empresa_id}, nome={nome}, telefone={telefone}, endereco={endereco}, credito={credito}"
-        )
 
         if not all([empresa_id, nome, telefone, endereco, credito]):
             flash("Dados incompletos para atualizar a empresa.", "danger")

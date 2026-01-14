@@ -322,7 +322,6 @@ def recusar_frete():
 
     return jsonify({"motoboy": motoboy, "frete_id": frete_id})
 
-
 @public_endpoint
 @delivery_app.route("/colocar_livre", methods=["POST"])
 def colocar_livre():
@@ -333,7 +332,6 @@ def colocar_livre():
     ConsultasDelivery.coloca_livre(telefone, lat, lon)
 
     return jsonify({"sucesso": "sucesso"})
-
 
 @public_endpoint
 @delivery_app.route("/atualizar_status", methods=["POST"])
@@ -369,7 +367,6 @@ def contabilizar():
 
     return jsonify({"response": "Contabilizado com sucesso"}), 200
 
-
 @public_endpoint
 @delivery_app.route("/descontabilizar", methods=["POST"])
 def descontabilizar():
@@ -377,7 +374,6 @@ def descontabilizar():
     id_mensagem = data_json.get("id_mensagem")
     ConsultasDelivery.excluir_frete(id_mensagem)
     return jsonify({"response": "descontabilizado com sucesso"}), 200
-
 
 @public_endpoint
 @delivery_app.route("/verificar_livre", methods=["GET"])
@@ -400,18 +396,13 @@ def verificar_livre():
 
     return jsonify({"status": "Ocupado"})
 
-
-# FECHAMENTO DO MOTOBOY
-
 def get_public_url(path=""):
     proto = request.headers.get("X-Forwarded-Proto", request.scheme)
     host = request.headers.get("X-Forwarded-Host", request.host)
     return f"{proto}://{host}{path}"
 
-
 DIRETORIO_FATURAS = os.path.join(os.path.dirname(__file__), "faturas_motoboys")
 os.makedirs(DIRETORIO_FATURAS, exist_ok=True)
-
 
 @public_endpoint
 @delivery_app.route("/recebe_valores", methods=["POST"])
@@ -543,8 +534,6 @@ def recebe_valores():
         "download": download_url,
     }), 200
 
-
-
 @public_endpoint
 @delivery_app.route("/baixar_faturas", methods=["GET"])
 def baixar_faturas():
@@ -609,6 +598,7 @@ def calcular_rota():
         }), 201
 
     return jsonify({
+        "Status": "Sucesso.",
         "retirada_poligono": poligono_retirada,
         "entrega_poligono": poligono_entrega,
         "valor": valor_final

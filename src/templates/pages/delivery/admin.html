@@ -88,7 +88,7 @@
                         {% if emp.status == "ativo" %}
                             <a href="javascript:void(0);" class="link-success">Ativo</a>
                         {% else %}
-                            <a href="javascript:void(0);" class="link-warning">Pendente</a>
+                            <a href="javascript:void(0);" class="link-danger">desativado</a>
                         {% endif %}
                     </td>
 
@@ -98,14 +98,15 @@
                             <div class="progress-bar bg-success" role="progressbar"
                                 style="width: 100%"></div>
                         </div>-->
-                        <button class="btn btn-primary btn-sm"
-                            onclick="abrirModalEditar(
-                                {{ emp.id }},
-                                '{{ emp.nome }}',
-                                '{{ emp.telefone }}',
-                                '{{ emp.endereco }}',
-                                {{ emp.credito }}
-                            )">
+                        <button
+                            class="btn btn-primary btn-sm"
+                            onclick="abrirModalEditar(this)"
+                            data-id="{{ emp.id }}"
+                            data-nome="{{ emp.nome }}"
+                            data-telefone="{{ emp.telefone }}"
+                            data-endereco="{{ emp.endereco }}"
+                            data-credito="{{ emp.credito }}"
+                            data-ativo="{{ 'true' if emp.ativo else 'false' }}">
                             Editar
                         </button>
                     </td>
@@ -156,10 +157,28 @@
                     </div>
                 </div>
 
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-success">Salvar Alterações</button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <div class="modal-footer justify-content-between">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        Cancelar
+                    </button>
+
+                    <button type="submit" class="btn btn-success">
+                        Salvar
+                    </button>
                 </div>
+            </form>
+            <form method="POST"
+                action="{{ url_for('admin_app.desativar_empresa') }}"
+                class="border-top p-3">
+
+                <input type="hidden" name="id" id="empresa-id-desativar">
+
+                <button
+                    id="btn-status-empresa"
+                    type="submit"
+                    class="btn w-100">
+                    Carregando status...
+                </button>
             </form>
         </div>
     </div>
@@ -172,15 +191,44 @@
   <!-- password create init js-->
 
 <script>
-   function abrirModalEditar(id, nome, telefone, endereco, credito) {
-        document.getElementById("editEmpresaId").value = id;
-        document.getElementById("editNome").value = nome;
-        document.getElementById("editTelefone").value = telefone;
-        document.getElementById("editEndereco").value = endereco;
-        document.getElementById("editCredito").value = credito;
 
-        const modal = new bootstrap.Modal(document.getElementById("modalEditarEmpresa"));
-        modal.show();
+    function abrirModalEditar(btn) {
+        const nome = btn.dataset.nome;
+
+        document.getElementById("editEmpresaId").value = btn.dataset.id;
+        document.getElementById("editNome").value = nome;
+        document.getElementById("editTelefone").value = btn.dataset.telefone;
+        document.getElementById("editEndereco").value = btn.dataset.endereco;
+        document.getElementById("editCredito").value = btn.dataset.credito;
+
+        document.getElementById("empresa-id-desativar").value = btn.dataset.id;
+
+        const statusBtn = document.getElementById("btn-status-empresa");
+        statusBtn.disabled = true;
+        statusBtn.className = "btn btn-secondary w-100";
+        statusBtn.innerText = "Carregando status...";
+
+        fetch(`/admin/consulta/status?nome=${encodeURIComponent(nome)}`)
+            .then(res => res.json())
+            .then(data => {
+                statusBtn.disabled = false;
+
+                if (data.is_active === true) {
+                    statusBtn.className = "btn btn-danger w-100";
+                    statusBtn.innerText = "Desativar Empresa";
+                } else {
+                    statusBtn.className = "btn btn-success w-100";
+                    statusBtn.innerText = "Ativar Empresa";
+                }
+            })
+            .catch(() => {
+                statusBtn.className = "btn btn-secondary w-100";
+                statusBtn.innerText = "Erro ao carregar status";
+            });
+
+        new bootstrap.Modal(
+            document.getElementById("modalEditarEmpresa")
+        ).show();
     }
 
     function abrirModalCredito(id, nome) {
@@ -190,5 +238,7 @@
         modal.show();
         window.reload();
     }
+
+
 </script>
 {% endblock extra_js %}

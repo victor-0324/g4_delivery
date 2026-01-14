@@ -200,7 +200,7 @@
     statusBtn.className = 'btn btn-secondary w-100';
     statusBtn.innerText = 'Verificando status...';
 
-    fetch(`/admin/motoboy/status?cpf=${cpf}`)
+    fetch(`/admin/consulta/status?cpf=${cpf}`)
     .then(res => res.json())
     .then(data => {
         const statusBtn = document.getElementById('btn-status-user');

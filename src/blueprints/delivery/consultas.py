@@ -108,33 +108,6 @@ class ConsultasDelivery:
 
     @classmethod
     @db_connector
-    def ativa_desativa_user(cls, connection, id):
-        """Ativa ou desativa um motoboy e o usuário vinculado via CPF"""
-        motoboy = connection.session.query(G4DeliveryMotoboy).filter_by(id=id).first()
-
-        if not motoboy:
-            return False
-
-        user = connection.session.query(UserDelivery).filter_by(cpf=motoboy.cpf).first()
-
-        if not user:
-            return False
-
-        if user.is_active:
-            # DESATIVAR
-            user.is_active = False
-            if not motoboy.telefone.endswith("_"):
-                motoboy.telefone = f"{motoboy.telefone}_"
-        else:
-            # ATIVAR
-            user.is_active = True
-            motoboy.telefone = motoboy.telefone.rstrip("_")
-
-        connection.session.commit()
-        return True
-
-    @classmethod
-    @db_connector
     def editar_motoboy(cls, connection, id, **dados):
         motoboy = connection.session.query(G4DeliveryMotoboy).filter_by(id=id).first()
 
@@ -147,37 +120,6 @@ class ConsultasDelivery:
         connection.session.commit()
         return True
 
-    # @classmethod
-    # @db_connector
-    # def deletar_motoboy(cls, connection, id):
-    #     """
-    #     Deleta um motoboy e o usuário vinculado via CPF
-    #     """
-
-    #     motoboy = (
-    #         connection.session
-    #         .query(G4DeliveryMotoboy)
-    #         .filter_by(id=id)
-    #         .first()
-    #     )
-
-    #     if not motoboy:
-    #         return False
-
-    #     usuario = (
-    #         connection.session
-    #         .query(UserDelivery)
-    #         .filter_by(cpf=motoboy.cpf)
-    #         .first()
-    #     )
-
-    #     if usuario:
-    #         connection.session.delete(usuario)
-
-    #     connection.session.delete(motoboy)
-    #     connection.session.commit()
-
-    #     return True
 
     @classmethod
     @db_connector
