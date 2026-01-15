@@ -621,6 +621,7 @@ class ConsultasDelivery:
             valor=valor,
             id_mensagem=id_mensagem,
             via=via,
+            hora_pedido=datetime.now(),
             status="aceito",
         )
         conection.session.add(registro)
