@@ -9,17 +9,18 @@ from flask import (
     flash,
     send_file,
 )
+from ..delivery.consultas import ConsultasDelivery
+from .src.functions import verificar_usuarios
+from .src.functions import fila_motoristas
+from src.database.querys import UserQuerys
+from flask_login import login_required
+from .pdf_html import format_number
+from ..enderecos.google_api import ConsultasGoogleAPI
+from jinja2 import Environment
+from datetime import datetime
+import os
 import requests
 import zipfile
-from flask_login import login_required, login_user
-from ..delivery.consultas import ConsultasDelivery
-from .src.functions import fila_motoristas
-import os
-from .pdf_html import format_number
-from jinja2 import Environment
-from src.database.querys import UserQuerys
-from .src.functions import verificar_usuarios
-from datetime import datetime
 
 delivery_app = Blueprint(
     "delivery_app",
@@ -164,12 +165,13 @@ def cadastrar_empresa():
             flash("Preencha todos os campos obrigatórios.", "danger")
             return redirect(request.url)
 
+
         try:
-            # lat, lon = ConsultasGoogleAPI.lat_lon(endereco)
+            lat, lon = ConsultasGoogleAPI.lat_lon(endereco)
             # Cria o usuário
             UserQuerys.create_user_delivery(nome, email, cpf, password, role)
             # Registra na tabela própria
-            # ConsultasDelivery.cadastrar_empresa(nome, telefone, endereco, lat, lon)
+            ConsultasDelivery.cadastrar_empresa(nome, telefone, endereco, lat, lon)
             flash("Empresa cadastrada com sucesso!", "success")
             return redirect(url_for("delivery_app.painel_empresa"))
 

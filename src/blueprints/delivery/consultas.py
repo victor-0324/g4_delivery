@@ -378,6 +378,31 @@ class ConsultasDelivery:
 
     @classmethod
     @db_connector
+    def Contabilizar_manual(cls, conection, nome, valor, id_mensagem, hora_pedido, via):
+        """Contabiliza o valor da corrida para o motoboy"""
+        motoboy = ConsultasDelivery.busca_mot_nome(nome)
+        motoboy_id = motoboy["id"]
+        existente = (
+            conection.session.query(G4DeliveryContabilizar)
+            .filter_by(id_mensagem=id_mensagem)
+            .first()
+        )
+        if existente:
+            return False
+        registro = G4DeliveryContabilizar(
+            motoboy_id=motoboy_id,
+            valor=valor,
+            id_mensagem=id_mensagem,
+            hora_pedido=hora_pedido,
+            via=via,
+            status="aceito",
+        )
+        conection.session.add(registro)
+        conection.session.commit()
+        return True
+
+    @classmethod
+    @db_connector
     def buscar_motoboy_frete(cls, connection, frete_id):
         """Busca o motoboy livre mais próximo"""
 
