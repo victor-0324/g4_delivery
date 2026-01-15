@@ -605,7 +605,7 @@ class ConsultasDelivery:
 
     @classmethod
     @db_connector
-    def adc_frete(cls, conection, telefone, valor, id_mensagem, via):
+    def adc_frete(cls, conection, telefone, valor, id_mensagem, via, retirada, entrega):
         """Contabiliza o valor da corrida para o motoboy"""
         motoboy = ConsultasDelivery.busca_motoboy_numero(telefone)
         motoboy_id = motoboy["id"]
@@ -616,11 +616,33 @@ class ConsultasDelivery:
         )
         if existente:
             return False
+
+        empresa = G4DeliveryEmpresas(
+            conection.session.query(G4DeliveryEmpresas)
+            .filter_by(endereco=retirada)
+            .first()
+        )
+        if empresa:
+            registro = G4DeliveryContabilizar(
+            motoboy_id=motoboy_id,
+            valor=valor,
+            id_mensagem=id_mensagem,
+            via=via,
+            empresa_id=empresa.id,
+            endereco_entrega=entrega,
+            hora_pedido=datetime.now(),
+            status="aceito",
+        )
+            conection.session.add(registro)
+            conection.session.commit()
+            return True
+
         registro = G4DeliveryContabilizar(
             motoboy_id=motoboy_id,
             valor=valor,
             id_mensagem=id_mensagem,
             via=via,
+            endereco_entrega=entrega,
             hora_pedido=datetime.now(),
             status="aceito",
         )

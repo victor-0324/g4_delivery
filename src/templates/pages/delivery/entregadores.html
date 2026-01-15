@@ -63,93 +63,90 @@
     </table>
 </div>
 
-<div class="row">
-    <div class="col-xl-12">
-        <div class="card">
+<div class="row g-4">
+
+    <!-- Total de Corridas -->
+    <div class="col-xxl col-sm-6 col-lg-3">
+        <div class="card overflow-hidden">
             <div class="card-body">
-                <div class="row g-4">
-
-                    <!-- Total de Corridas -->
-                    <div class="col-lg-3 col-sm-6 border-end-lg">
-                        <div>
-                            <div class="d-flex align-items-center gap-2 mb-4">
-                                <div class="avatar-xs flex-shrink-0">
-                                    <div class="avatar-title bg-body-secondary text-success border border-success-subtle rounded-circle">
-                                        <i class="bi bi-cash-coin"></i>
-                                    </div>
-                                </div>
-                                <div class="flex-grow-1">
-                                    <p class="text-muted mb-0">Total de Corridas</p>
-                                </div>
-                            </div>
-                            <h3 class="mb-0">
-                                {{ total_corridas }}
-                            </h3>
-                        </div>
+                <div class="avatar-sm float-end">
+                    <div class="avatar-title bg-success-subtle text-success fs-3xl rounded">
+                        <i class="bi bi-car-front"></i>
                     </div>
-
-                    <!-- Receita Bruta -->
-                    <div class="col-lg-3 col-sm-6 border-end-sm">
-                        <div>
-                            <div class="d-flex align-items-center gap-2 mb-4">
-                                <div class="avatar-xs flex-shrink-0">
-                                    <div class="avatar-title bg-body-secondary text-primary border border-primary-subtle rounded-circle">
-                                        <i class="bi bi-graph-up"></i>
-                                    </div>
-                                </div>
-                                <div class="flex-grow-1">
-                                    <p class="text-muted mb-0">Receita Bruta R$</p>
-                                </div>
-                            </div>
-                            <h3 class="mb-0">
-                                R$ {{ "%.2f"|format(receita_bruta) }}
-                            </h3>
-                        </div>
-                    </div>
-
-                    <!-- Comissão -->
-                    <div class="col-lg-3 col-sm-6 border-end-sm">
-                        <div>
-                            <div class="d-flex align-items-center gap-2 mb-4">
-                                <div class="avatar-xs flex-shrink-0">
-                                    <div class="avatar-title bg-body-secondary text-warning border border-warning-subtle rounded-circle">
-                                        <i class="bi bi-percent"></i>
-                                    </div>
-                                </div>
-                                <div class="flex-grow-1">
-                                    <p class="text-muted mb-0">Comissão</p>
-                                </div>
-                            </div>
-                            <h3 class="mb-0">
-                                R$ {{ "%.2f"|format(comissao) }}
-                            </h3>
-                        </div>
-                    </div>
-
-                    <!-- Receita Líquida -->
-                    <div class="col-lg-3 col-sm-6">
-                        <div>
-                            <div class="d-flex align-items-center gap-2 mb-4">
-                                <div class="avatar-xs flex-shrink-0">
-                                    <div class="avatar-title bg-body-secondary text-success border border-success-subtle rounded-circle">
-                                        <i class="bi bi-wallet2"></i>
-                                    </div>
-                                </div>
-                                <div class="flex-grow-1">
-                                    <p class="text-muted mb-0">Receita Líquida R$</p>
-                                </div>
-                            </div>
-                            <h3 class="mb-0">
-                                R$ {{ "%.2f"|format(receita_liquida) }}
-                            </h3>
-                        </div>
-                    </div>
-
                 </div>
+                <h4 class="mb-0">
+                    {{ total_corridas }}
+                </h4>
+                <p class="text-muted mb-4">Total de Corridas</p>
+            </div>
+            <div class="progress progress-sm rounded-0">
+                <div class="progress-bar bg-success" style="width: 100%"></div>
             </div>
         </div>
     </div>
+
+    <!-- Receita Bruta -->
+    <div class="col-xxl col-sm-6 col-lg-3">
+        <div class="card overflow-hidden">
+            <div class="card-body">
+                <div class="avatar-sm float-end">
+                    <div class="avatar-title bg-primary-subtle text-primary fs-3xl rounded">
+                        <i class="bi bi-graph-up-arrow"></i>
+                    </div>
+                </div>
+                <h4 class="mb-0">
+                    R$ {{ "%.2f"|format(receita_bruta) }}
+                </h4>
+                <p class="text-muted mb-4">Receita Bruta</p>
+            </div>
+            <div class="progress progress-sm rounded-0">
+                <div class="progress-bar bg-primary" style="width: 100%"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Comissão -->
+    <div class="col-xxl col-sm-6 col-lg-3">
+        <div class="card overflow-hidden">
+            <div class="card-body">
+                <div class="avatar-sm float-end">
+                    <div class="avatar-title bg-warning-subtle text-warning fs-3xl rounded">
+                        <i class="bi bi-percent"></i>
+                    </div>
+                </div>
+                <h4 class="mb-0">
+                    R$ {{ "%.2f"|format(comissao) }}
+                </h4>
+                <p class="text-muted mb-4">Comissão</p>
+            </div>
+            <div class="progress progress-sm rounded-0">
+                <div class="progress-bar bg-warning" style="width: 100%"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Receita Líquida -->
+    <div class="col-xxl col-sm-6 col-lg-3">
+        <div class="card overflow-hidden">
+            <div class="card-body">
+                <div class="avatar-sm float-end">
+                    <div class="avatar-title bg-success-subtle text-success fs-3xl rounded">
+                        <i class="bi bi-wallet2"></i>
+                    </div>
+                </div>
+                <h4 class="mb-0">
+                    R$ {{ "%.2f"|format(receita_liquida) }}
+                </h4>
+                <p class="text-muted mb-4">Receita Líquida</p>
+            </div>
+            <div class="progress progress-sm rounded-0">
+                <div class="progress-bar bg-success" style="width: 100%"></div>
+            </div>
+        </div>
+    </div>
+
 </div>
+
 
 
 <div class="card mt-4">

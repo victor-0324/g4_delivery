@@ -12,7 +12,7 @@ from flask import (
     flash,
 )
 
-from flask_login import login_user, logout_user, current_user, login_required
+from flask_login import login_user, logout_user, login_required
 from src.database.querys import UserQuerys
 
 auth = Blueprint(

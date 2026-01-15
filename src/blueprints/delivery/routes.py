@@ -363,8 +363,10 @@ def contabilizar():
     motorista = data_json.get("telefone")
     valor = data_json.get("valor")
     id_mensagem = data_json.get("id_mensagem")
+    retirada = data_json.get("retirada")
+    entrega = data_json.get("entrega")
     via = "WhatsApp"
-    ConsultasDelivery.adc_frete(motorista, valor, id_mensagem, via)
+    ConsultasDelivery.adc_frete(motorista, valor, id_mensagem, via, retirada, entrega)
 
     return jsonify({"response": "Contabilizado com sucesso"}), 200
 
