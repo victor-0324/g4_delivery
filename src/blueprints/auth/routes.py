@@ -21,13 +21,10 @@ auth = Blueprint(
     template_folder="templates",
     static_folder="static",
 )
-
-
 def public_endpoint(function):
     """Decoretor for public routes"""
     function.is_public = True
     return function
-
 
 @current_app.before_request
 def check_valid_login():
@@ -120,27 +117,54 @@ def inicio():
 @login_required
 @auth.route("/altera_password", methods=["GET", "POST"])
 def altera_password():
-    """Altera a senha do usuário."""
     session_user = session.get("user")
-    print(f"Usuário na sessão: {session_user}")
-    user = UserQuerys.delivery_busca_cpf(session_user["cpf"])
+
+    if not session_user:
+        return redirect(url_for("auth.login"))
+
+    user_id = session_user.get("id")
+    role = session_user.get("role")
+    print(f"Alterar senha para usuário ID: {user_id}, Role: {role}")
+    # Resolve o usuário pelo tipo
+    if role == "motoboy":
+        user = UserQuerys.get_by_id(user_id)
+    elif role == "empresa_delivery":
+        user = UserQuerys.get_by_id(user_id)
+    elif role == "admin_delivery":
+        user = UserQuerys.get_by_id(user_id)
+    else:
+        flash("Tipo de usuário inválido.", "danger")
+        return redirect(url_for("auth.login"))
+
     if not user:
         return redirect(url_for("auth.login"))
 
     if request.method == "POST":
-        nova_senha = request.form["new_password"]
-        confirma_senha = request.form["confirm_password"]
+        nova_senha = request.form.get("new_password")
+        confirma_senha = request.form.get("confirm_password")
 
         if nova_senha != confirma_senha:
             flash("Senhas não coincidem.", "danger")
             return redirect(url_for("auth.altera_password"))
 
         try:
-            UserQuerys.altera_password(user.id, nova_senha)
-            flash("Senha atualizada com sucesso.", "success")
-            return redirect(url_for("auth.login"))
-        except ValueError as e:
-            flash(str(e))
-        return redirect(url_for("auth.altera_password"))
+            if role == "motoboy":
+                UserQuerys.altera_password(user.id, nova_senha)
+            elif role == "empresa_delivery":
+                UserQuerys.altera_password(user.id, nova_senha)
+            elif role == "admin_delivery":
+                UserQuerys.altera_password(user.id, nova_senha)
 
-    return render_template("pages/delivery/altera_password.html", user=user)
+            flash("Senha alterada com sucesso.", "success")
+            return redirect(url_for("auth.login"))
+
+        except ValueError as e:
+            flash(str(e), "danger")
+            return redirect(url_for("auth.altera_password"))
+
+    return render_template(
+        "pages/delivery/altera_password.html",
+        user=user,
+        role=role
+    )
+

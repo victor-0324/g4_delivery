@@ -173,10 +173,9 @@ def cadastrar_empresa():
             # Registra na tabela própria
             ConsultasDelivery.cadastrar_empresa(nome, telefone, endereco, lat, lon)
             flash("Empresa cadastrada com sucesso!", "success")
-            return redirect(url_for("delivery_app.painel_empresa"))
+            return redirect(url_for("delivery_app.cadastrar_empresa"))
 
         except Exception as e:
-            print("🔥 ERRO AO CADASTRAR:", e)
             flash("Erro ao cadastrar. Verifique os dados.", "danger")
             return redirect(request.url)
 
