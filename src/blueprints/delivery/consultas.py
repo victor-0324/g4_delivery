@@ -359,6 +359,12 @@ class ConsultasDelivery:
             connection.session.commit()
             return registro.id
 
+        empresa = (
+            connection.session.query(G4DeliveryEmpresas)
+            .filter_by(telefone=telefone)
+            .first()
+        )
+
         registro = G4DeliveryContabilizar(
             telefone=telefone,
             valor=float(valor_decimal),
@@ -366,7 +372,8 @@ class ConsultasDelivery:
             retirada_lon=str(retirada_lon),
             entrega_lat=str(entrega_lat),
             entrega_lon=str(entrega_lon),
-            empresa_id=usuario,
+            empresa_id=empresa.id,
+            endereco_entrega=empresa.endereco,
             via=via,
             status=status,
             hora_pedido=datetime.now(),
@@ -375,6 +382,7 @@ class ConsultasDelivery:
         connection.session.add(registro)
         connection.session.commit()
         return registro.id
+
 
     @classmethod
     @db_connector
@@ -617,22 +625,23 @@ class ConsultasDelivery:
         if existente:
             return False
 
-        empresa = G4DeliveryEmpresas(
+        empresa = (
             conection.session.query(G4DeliveryEmpresas)
             .filter_by(endereco=retirada)
             .first()
         )
         if empresa:
             registro = G4DeliveryContabilizar(
-            motoboy_id=motoboy_id,
-            valor=valor,
-            id_mensagem=id_mensagem,
-            via=via,
-            empresa_id=empresa.id,
-            endereco_entrega=entrega,
-            hora_pedido=datetime.now(),
-            status="aceito",
-        )
+                motoboy_id=motoboy_id,
+                valor=valor,
+                id_mensagem=id_mensagem,
+                via=via,
+                empresa_id=empresa.id,
+                telefone=empresa.telefone,
+                endereco_entrega=entrega,
+                hora_pedido=datetime.now(),
+                status="aceito",
+            )
             conection.session.add(registro)
             conection.session.commit()
             return True
@@ -649,6 +658,7 @@ class ConsultasDelivery:
         conection.session.add(registro)
         conection.session.commit()
         return True
+
 
     @classmethod
     @db_connector

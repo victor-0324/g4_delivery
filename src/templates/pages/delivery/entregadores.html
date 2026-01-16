@@ -5,7 +5,18 @@
 
 <!-- Sweet Alert css-->
 <link href="{{url_for('static' ,filename='libs/sweetalert2/sweetalert2.min.css')}}" rel="stylesheet" type="text/css">
+<style>
+    .card {
+    background-color: #1e2026; /* Cor de fundo compatível com seu tema */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2); /* Sombra mais elegante */
+}
 
+/* Efeito de brilho na barra de progresso */
+.progress-bar {
+    background-image: linear-gradient(45deg, rgba(255,255,255,.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,.15) 50%, rgba(255,255,255,.15) 75%, transparent 75%, transparent);
+    background-size: 1rem 1rem;
+}
+</style>
 {% endblock extra_css %}
 
 {% block content %}
@@ -66,24 +77,46 @@
 <div class="row g-4">
 
     <!-- Total de Corridas -->
-    <div class="col-xxl col-sm-6 col-lg-3">
-        <div class="card overflow-hidden">
-            <div class="card-body">
-                <div class="avatar-sm float-end">
-                    <div class="avatar-title bg-success-subtle text-success fs-3xl rounded">
-                        <i class="bi bi-car-front"></i>
+       <div class="col-xxl col-sm-6 col-lg-3">
+            <div class="card border-0 shadow-sm h-100 overflow-hidden" style="border-radius: 10px; position: relative;">
+
+                <div class="position-absolute top-0 end-0 p-3 opacity-10">
+                    <i class="bi bi-trophy-fill" style="font-size: 3rem;"></i>
+                </div>
+
+                <div class="card-body p-4">
+            <div class="d-flex align-items-center">
+                <div class="avatar-sm me-3">
+                    <div class="avatar-title bg-warning bg-opacity-10 text-{{ medalha.classe }} rounded-circle fs-4">
+                        <i class="bi bi-scooter"></i>
                     </div>
                 </div>
-                <h4 class="mb-0">
-                    {{ total_corridas }}
-                </h4>
-                <p class="text-muted mb-4">Total de Corridas</p>
+
+                <div class="flex-grow-1 overflow-hidden">
+                    <p class="text-uppercase fw-medium text-muted text-truncate mb-0">Total de Corridas</p>
+                    <h2 class="fs-2 fw-bold mb-0">{{ total_corridas }}</h2>
+                </div>
             </div>
-            <div class="progress progress-sm rounded-0">
-                <div class="progress-bar bg-success" style="width: 100%"></div>
+
+            <div class="mt-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="badge rounded-pill bg-{{ medalha.classe }} text-dark">
+                        <i class="bi {{ medalha.icone }} me-1"></i> {{ medalha.nome }}
+                    </span>
+                    <small class="text-muted fw-bold">{{ progresso_medalha }}% p/ próxima</small>
+                </div>
+
+                <div class="progress" style="height: 8px; border-radius: 10px; background-color: rgba(255,255,255,0.1);">
+                    <div class="progress-bar bg-{{ medalha.classe }}"
+                         role="progressbar"
+                         style="width: {{ progresso_medalha }}%; border-radius: 10px;"
+                         aria-valuenow="{{ progresso_medalha }}" aria-valuemin="0" aria-valuemax="100">
+                    </div>
+                </div>
             </div>
         </div>
     </div>
+</div>
 
     <!-- Receita Bruta -->
     <div class="col-xxl col-sm-6 col-lg-3">

@@ -11,7 +11,7 @@ from flask import (
 )
 from ..delivery.consultas import ConsultasDelivery
 from .src.functions import verificar_usuarios
-from .src.functions import fila_motoristas
+from .src.functions import fila_motoristas, get_medalha, progresso_para_proxima
 from src.database.querys import UserQuerys
 from flask_login import login_required
 from .pdf_html import format_number
@@ -120,7 +120,8 @@ def entregadores():
     percentual_comissao = 0.10  # 10%
     comissao = receita_bruta * percentual_comissao
     receita_liquida = receita_bruta - comissao
-
+    medalha = get_medalha(total_corridas)
+    progresso_medalha = progresso_para_proxima(total_corridas)
     return render_template(
         "pages/delivery/entregadores.html",
         user=user,
@@ -130,6 +131,8 @@ def entregadores():
         comissao=comissao,
         receita_liquida=receita_liquida,
         fila=fila,
+        medalha=medalha,
+        progresso_medalha=progresso_medalha,
     )
 
 

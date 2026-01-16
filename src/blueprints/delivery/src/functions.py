@@ -51,3 +51,39 @@ def fila_motoristas():
         )
 
     return motoristas_info
+
+
+def get_medalha(total_corridas):
+    if total_corridas >= 150:
+        return {
+            "nome": "Ouro",
+            "classe": "success",
+            "icone": "bi-award-fill"
+        }
+    elif total_corridas >= 80:
+        return {
+            "nome": "Prata",
+            "classe": "secondary",
+            "icone": "bi-award"
+        }
+    elif total_corridas >= 30:
+        return {
+            "nome": "Bronze",
+            "classe": "warning",
+            "icone": "bi-award"
+        }
+    else:
+        return {
+            "nome": "Iniciante",
+            "classe": "light",
+            "icone": "bi-emoji-smile"
+        }
+
+def progresso_para_proxima(total):
+    if total < 30:
+        return int((total / 30) * 100)
+    elif total < 80:
+        return int(((total - 30) / 50) * 100)
+    elif total < 150:
+        return int(((total - 80) / 70) * 100)
+    return 100
