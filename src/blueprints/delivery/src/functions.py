@@ -1,5 +1,5 @@
 from ..consultas import ConsultasDelivery
-from datetime import datetime
+from datetime import datetime, timedelta
 
 def verificar_usuarios(telefone):
     """Verifica se o usuário existe em empresas, motoboys ou pessoas"""
@@ -74,8 +74,8 @@ def get_medalha(total_corridas):
         }
     else:
         return {
-            "nome": "Iniciante",
-            "classe": "light",
+            "nome": "Iniciando",
+            "classe": "danger",
             "icone": "bi-emoji-smile"
         }
 
@@ -87,3 +87,9 @@ def progresso_para_proxima(total):
     elif total < 150:
         return int(((total - 80) / 70) * 100)
     return 100
+
+
+def inicio_semana_atual():
+    agora = datetime.now()
+    inicio_semana = agora - timedelta(days=agora.weekday())
+    return inicio_semana.replace(hour=0, minute=0, second=0, microsecond=0)

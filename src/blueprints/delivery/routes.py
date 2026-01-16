@@ -11,7 +11,7 @@ from flask import (
 )
 from ..delivery.consultas import ConsultasDelivery
 from .src.functions import verificar_usuarios
-from .src.functions import fila_motoristas, get_medalha, progresso_para_proxima
+from .src.functions import fila_motoristas, get_medalha, progresso_para_proxima, inicio_semana_atual
 from src.database.querys import UserQuerys
 from flask_login import login_required
 from .pdf_html import format_number
@@ -97,29 +97,42 @@ def entregadores():
     motoboy = ConsultasDelivery.buscar_por_cpf(user["cpf"])
     fretes = ConsultasDelivery.busca_fretes_motoboy(motoboy["id"])
     fila = fila_motoristas()
-
+    inicio_semana = inicio_semana_atual()
+    print("Início da semana:", inicio_semana)
     corridas = []
     receita_bruta = 0.0
 
     for f in fretes:
+        data_corrida = f.get("hora_aceite") or f.get("hora_pedido")
+
+        if not data_corrida:
+            continue
+
+        # se vier como string, converte
+        if isinstance(data_corrida, str):
+            data_corrida = datetime.fromisoformat(data_corrida)
+
+        # FILTRO SEMANAL
+        if data_corrida < inicio_semana:
+            continue
+
         valor = float(f.get("valor", 0))
         receita_bruta += valor
 
-        corridas.append(
-            {
-                "id": f.get("id"),
-                "valor": valor,
-                "data_hora": f.get("hora_aceite") or f.get("hora_pedido"),
-                "via": f.get("via"),
-                "status": f.get("status"),
-            }
-        )
+        corridas.append({
+            "id": f.get("id"),
+            "valor": valor,
+            "data_hora": data_corrida,
+            "via": f.get("via"),
+            "status": f.get("status"),
+        })
 
     total_corridas = len(corridas)
 
     percentual_comissao = 0.10  # 10%
     comissao = receita_bruta * percentual_comissao
     receita_liquida = receita_bruta - comissao
+
     medalha = get_medalha(total_corridas)
     progresso_medalha = progresso_para_proxima(total_corridas)
     return render_template(
@@ -604,7 +617,7 @@ def calcular_rota():
         }), 201
 
     return jsonify({
-        "Status": "Sucesso.",
+        "Status": "Sucesso",
         "retirada_poligono": poligono_retirada,
         "entrega_poligono": poligono_entrega,
         "valor": valor_final
