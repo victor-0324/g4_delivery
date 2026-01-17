@@ -63,19 +63,16 @@ def gerar_pix():
     """Gera um pix para o pedido."""
     import requests
 
-    url = "https://api-sandbox.asaas.com/v3/pix/qrCodes/pay"
+    url = "https://api.asaas.com/v3/payments"
 
     payload = {
-        "qrCode": {
-            "encodedImage": "iVBORw0KGgoAAAANSUhEUgAAAcIAAAHCAQAAAABUY/ToAAADD0lEQVR4Xu2TwY7bMBBDffP//1E/yzd3+Ugp2QKFi710AnDiWCMOH3OQctw/rF/Hn8q/VsmnKvlUJZ+q5FOVfKr/Rl4Hdbo5v4RTs6/d+dXxqPcSS8nBpI2nPi/aWZIS4qDlLzmYjMpziXOQGSeoVfbiS44nMwKH2imHZ6/fKPkBpI791JZHV+C15VvyQ8g7qh61GpsytPzLWXI0yaFr9viJs+RfPwPIXT79fQt8E+QGyz1IlRxLcr44ZJHhWvsjW8K0OKPkZFKS3mAxe8dwwa9ebcmxpC0B+QbN1UjPbVA0ISXnkuoXqBXeeIAXn4CSc0lKkA9ZCSzOsWQqY1XJwaQmYlcTj8h9O+itlpxNsrl01pw+VtHqTUfBBl9yLilQOyMnK5IZAZjlCFxyMIkGJICeU88byJq3JWeT6titsc0xkXYJsqHkdHIjy2NSkmz6sPVlAS45mQSTItED4jwSuHqnq0rOJeWSxat8rHKS5D5XIhej5GRSgl5YebJ5H+SSIJScS178Y/exx4LqnMO3IIrRkoNJ/s84bllsx8PWDQSZJUeTZi7hy8+Zo8SbtybOKjmW3ITNHi3lXlcgi5WSo8lXbY9FtQ5UZBSZSs4lgUGAZDEszXa3IjCVnE2+2bXhwR8fjeYSCSg5mLzY2+55VmXY6biElBxNRoqXHMboQg8UxTtfesmxJGXz4k2bWDx7W0tOJj3Ve3cwNhGyNP/jS44mbTDGjJFaK96FWGvJsaSVw4yMEsRpFJYBDZeh5HhSFOO9cxTznRi+5GxyCT7ncGSZA00OYMnBJIzQd2t2HuBBKjmelPHWQa93lOx3kr88JUeToWzfR2/MATIvqORscoMQRlcRYc93oeRYcpUSDDroVky2xG2l5GQyp7wvAjyEJm6lLUVSycGkOr8vOxURRF4C7Uh6ydGkpnIxzfN2PXYgAr6SH0H6hcM9WUYvPUqgSs4n49dUL6FOQzGTpeRk0tJl3Bm+DdDk7Lz4S84l47t06snQ1rDcURxkvORY8kdV8qlKPlXJpyr5VCWf6sPI3wc212PuTq9ZAAAAAElFTkSuQmCC",
-            "payload": "00020126580014br.gov.bcb.pix0136676cd7d6-8e86-4781-9758-275657a45c5d5204000053039865802BR5914G4 MOBILE LTDA6012Sao Lourenco62290525G4MOBILE00000000904410ASA6304316F",
-        },
-        "value": 100,
-        "description": "Churrasco",
-        "scheduleDate": "2026-03-15",
+        "customer": "{{ $json.asaas_customer_id }}",
+        "billingType": "PIX",
+        "value": 10,
+        "dueDate": "{{ $now.add(7, 'days').format('YYYY-MM-DD') }}",
+        "description": "Cobrança semanal - G4 Delivery"
     }
     headers = {
-        "accept": "application/json",
         "content-type": "application/json",
         "access_token": "$aact_hmlg_000MzkwODA2MWY2OGM3MWRlMDU2NWM3MzJlNzZmNGZhZGY6OjI1MzE3ZmQzLTNhYTUtNDg4MC1iZDdiLWJkNWY3YmMxZTkyYTo6JGFhY2hfNWY1ZGEzMzEtMzI0MC00ZDU1LWFhYTItODViMTJlNWMwNDYz",
     }
