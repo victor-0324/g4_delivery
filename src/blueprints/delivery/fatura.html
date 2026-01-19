@@ -168,10 +168,24 @@
     </div>
     {% endif %}
 
+    {% if comissao_minima_aplicada %}
+    <div style="
+        background-color:#fff3cd;
+        color:#b49c16;
+        padding:10px;
+        margin-top:10px;
+        border-radius:5px;
+        font-weight:bold;
+        text-align:center;
+    ">
+        ⚠ Comissão mínima aplicada: o valor calculado ficou abaixo de R$ 50,00
+    </div>
+    {% endif %}
+
     <div class="detalhes">
         <ul>
             <li>
-                <strong>Número de Entregas:</strong>
+                <strong>Número de entregas:</strong>
                 <p>{{ total_corridas }}</p>
             </li>
             <li>
@@ -186,7 +200,7 @@
     </div>
 
     <div class="tarja-pix">
-        <p>Pagamento via PIX disponível. Chave: g4deliveryslc@gmail.com</p>
+        <p>Pagamento via PIX disponível. Chave: contatog4mobile@gmail.com</p>
     </div>
 
     <table>

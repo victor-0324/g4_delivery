@@ -120,7 +120,6 @@ class ConsultasDelivery:
         connection.session.commit()
         return True
 
-
     @classmethod
     @db_connector
     def busca_fretes_motoboy(cls, connection, motoboy_id):
@@ -139,6 +138,15 @@ class ConsultasDelivery:
         motoboys = connection.session.query(G4DeliveryMotoboy).all()
         return [motoboy.to_dict() for motoboy in motoboys] if motoboys else []
 
+    @classmethod
+    @db_connector
+    def busca_mot_nome(cls, connection, nome):
+        """Busca motoboy pelo nome"""
+        motoboy = (
+            connection.session.query(G4DeliveryMotoboy).filter_by(nome=nome).first()
+        )
+        return motoboy.to_dict() if motoboy else None
+    
     @classmethod
     @db_connector
     def verifica_usuario(cls, connection, telefone):
@@ -280,6 +288,48 @@ class ConsultasDelivery:
 
     @classmethod
     @db_connector
+    def busca_fretes_periodo(cls, connection, motoboy_id, data_inicio, data_fim):
+        """Busca corridas do motorista entre datas"""
+        return (connection.session.query(G4DeliveryContabilizar)
+                .filter(
+                    G4DeliveryContabilizar.motoboy_id == motoboy_id,
+                    G4DeliveryContabilizar.status == "aceito",
+                    G4DeliveryContabilizar.hora_pedido >= data_inicio,
+                    G4DeliveryContabilizar.hora_pedido <= data_fim
+                )
+                .all())
+
+    @classmethod
+    @db_connector
+    def busca_comissao_padrao(cls, connection, telefone):
+        """Busca a comissão padrão do motoboy pelo telefone"""
+
+        motoboy = (
+            connection.session.query(G4DeliveryMotoboy)
+            .filter(G4DeliveryMotoboy.telefone == telefone)
+            .first()
+        )
+
+        etiquetas_brutas = motoboy.etiqueta or []
+
+        etiquetas = {
+            str(item[0])
+            for item in etiquetas_brutas
+            if isinstance(item, (list, tuple)) and item
+        }
+
+        convenio_social = "4" in etiquetas
+
+        if "1" in etiquetas:
+            comissao = 7
+        else:
+            comissao = 10
+
+        return comissao, convenio_social
+    
+
+    @classmethod
+    @db_connector
     def cadastrar_empresa(cls, connection, nome, telefone, endereco, lat, lon):
         """Cadastra uma empresa parceira"""
         empresa = G4DeliveryEmpresas(
@@ -382,7 +432,6 @@ class ConsultasDelivery:
         connection.session.add(registro)
         connection.session.commit()
         return registro.id
-
 
     @classmethod
     @db_connector
@@ -658,7 +707,6 @@ class ConsultasDelivery:
         conection.session.add(registro)
         conection.session.commit()
         return True
-
 
     @classmethod
     @db_connector
