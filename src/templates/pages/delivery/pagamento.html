@@ -1,0 +1,104 @@
+{% extends 'partials/base.html' %}
+
+{% block title %}Pagamentos {% endblock title %}
+
+{% block content %}
+
+<div class="card shadow-sm border-0 overflow-hidden">
+    <div class="card-header  border-bottom">
+        <h4 class="card-title mb-0">Pagamentos - {{ empresa.nome }}</h4>
+    </div>
+    <form method="GET" class="row g-3 align-items-end mb-4">
+
+        <div class="col-md-4">
+            <label class="form-label fw-semibold">Data inicial</label>
+            <input type="date"
+                name="data_inicio"
+                class="form-control"
+                value="{{ request.args.get('data_inicio', '') }}">
+        </div>
+
+        <div class="col-md-4">
+            <label class="form-label fw-semibold">Data final</label>
+            <input type="date"
+                name="data_fim"
+                class="form-control"
+                value="{{ request.args.get('data_fim', '') }}">
+        </div>
+
+        <div class="col-md-4 d-flex gap-2">
+            <button type="submit" class="btn btn-primary w-100">
+                🔍 Buscar
+            </button>
+
+            <a href="{{ url_for('admin_app.pagamento', empresa_id=empresa.id) }}"
+                class="btn btn-outline-secondary w-100">
+                Limpar
+            </a>
+        </div>
+
+    </form>
+
+    <table id="tabela-pagamentos" class="table table-hover align-middle mb-0">
+
+        <thead class="table-dark text-center">
+            <tr>
+                <th class="text-uppercase small fw-bold py-3 ps-4 text-start">Endereço</th>
+                <th class="text-uppercase small fw-bold py-3">Valor</th>
+                <th class="text-uppercase small fw-bold py-3">Motoboy Responsável</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+            {% set data_atual = None %}
+
+            {% for p in pagamentos %}
+
+                {# ---- QUEBRA POR DATA ---- #}
+                {% if p.data != data_atual %}
+                    <tr class="table-secondary">
+                        <td colspan="3" class="fw-bold text-secondary text-center small text-uppercase py-2 letter-spacing-1">
+                            📅 {{ p.data }}
+                        </td>
+                    </tr>
+                    {% set data_atual = p.data %}
+                {% endif %}
+
+                <tr>
+                    <td class="text-start ps-4 py-3">
+                        <span class="d-block fw-semibold text-dark">
+                            {{ p.endereco or '-' }}
+                        </span>
+                    </td>
+
+                    <td class="text-center">
+                        <span class="fw-bold text-success fs-6">
+                            {{ p.valor }}
+                        </span>
+                    </td>
+
+                    <td class="text-center">
+                        {% if p.motoboy %}
+                            <span class="fw-bold text-secondary text-uppercase small">
+                                <i class="bi bi-person-fill"></i> {{ p.motoboy }}
+                            </span>
+                        {% else %}
+                            <span class="text-muted small">—</span>
+                        {% endif %}
+                    </td>
+                </tr>
+
+            {% endfor %}
+
+        </tbody>
+    </table>
+</div>
+
+
+{% endblock content %}
+
+{% block extra_js %}
+  <!-- password create init js-->
+
+{% endblock extra_js %}

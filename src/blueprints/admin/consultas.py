@@ -8,6 +8,13 @@ from src.database.models.user import UserDelivery
 
 class ConsultaDados:
 
+    @classmethod
+    @db_connector
+    def empresa_por_id(cls, connection, id):
+        """Retorna os dados de uma empresa pelo ID."""
+        empresa = connection.session.query(G4DeliveryEmpresas).filter_by(id=id).first()
+        return empresa.to_dict() if empresa else None
+
 
     @classmethod
     @db_connector

@@ -158,9 +158,11 @@
                 </div>
 
                 <div class="modal-footer justify-content-between">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        Cancelar
-                    </button>
+                    <a id="pagamento-btn"
+                        class="btn btn-secondary"
+                        href="#">
+                        Pagamentos
+                    </a>
 
                     <button type="submit" class="btn btn-success">
                         Salvar
@@ -195,6 +197,7 @@
     function abrirModalEditar(btn) {
         const nome = btn.dataset.nome;
 
+
         document.getElementById("editEmpresaId").value = btn.dataset.id;
         document.getElementById("editNome").value = nome;
         document.getElementById("editTelefone").value = btn.dataset.telefone;
@@ -207,7 +210,10 @@
         statusBtn.disabled = true;
         statusBtn.className = "btn btn-secondary w-100";
         statusBtn.innerText = "Carregando status...";
-
+        // 🔥 LINK DE PAGAMENTO
+        const btnPagamento = document.getElementById("pagamento-btn");
+        const empresaId = btn.dataset.id;
+        btnPagamento.href = `/admin/pagamento/${empresaId}`;
         fetch(`/admin/consulta/status?nome=${encodeURIComponent(nome)}`)
             .then(res => res.json())
             .then(data => {

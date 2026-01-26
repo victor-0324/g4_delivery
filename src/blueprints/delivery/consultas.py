@@ -146,7 +146,7 @@ class ConsultasDelivery:
             connection.session.query(G4DeliveryMotoboy).filter_by(nome=nome).first()
         )
         return motoboy.to_dict() if motoboy else None
-    
+
     @classmethod
     @db_connector
     def verifica_usuario(cls, connection, telefone):
@@ -174,18 +174,32 @@ class ConsultasDelivery:
 
     @classmethod
     @db_connector
-    def busca_pedidos_empresa(cls, connection, empresa_id):
-        """Busca todos os pedidos de uma empresa"""
-        pedidos = (
-            connection.session.query(G4DeliveryContabilizar)
-            .filter_by(
-                telefone=connection.session.query(G4DeliveryEmpresas.telefone)
-                .filter_by(id=empresa_id)
-                .scalar()
-            )
-            .all()
+    def busca_pedidos_empresa(cls, connection, empresa_id, data_inicio=None, data_fim=None):
+        """Busca pedidos de uma empresa com filtro opcional por data"""
+
+        telefone_empresa = (
+            connection.session.query(G4DeliveryEmpresas.telefone)
+            .filter(G4DeliveryEmpresas.id == empresa_id)
+            .scalar()
         )
-        return [pedido.to_dict() for pedido in pedidos] if pedidos else []
+
+        if not telefone_empresa:
+            return []
+
+        query = (
+            connection.session.query(G4DeliveryContabilizar)
+            .filter(G4DeliveryContabilizar.telefone == telefone_empresa)
+        )
+
+        if data_inicio:
+            query = query.filter(G4DeliveryContabilizar.hora_pedido >= data_inicio)
+
+        if data_fim:
+            query = query.filter(G4DeliveryContabilizar.hora_pedido <= data_fim)
+
+        pedidos = query.order_by(G4DeliveryContabilizar.hora_pedido).all()
+
+        return [pedido.to_dict() for pedido in pedidos]
 
     @classmethod
     @db_connector
@@ -326,7 +340,7 @@ class ConsultasDelivery:
             comissao = 10
 
         return comissao, convenio_social
-    
+
 
     @classmethod
     @db_connector

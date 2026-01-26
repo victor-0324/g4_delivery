@@ -8,7 +8,7 @@ from flask import (
     flash,
     jsonify,
 )
-
+from datetime import datetime, time
 from ..delivery.consultas import ConsultasDelivery
 from .consultas import ConsultaDados
 from flask_login import login_required
@@ -162,3 +162,48 @@ def delivery():
     fila = fila_motoristas()
 
     return render_template("pages/delivery/admin.html", user=user, empresas=empresas, fila=fila)
+
+@login_required
+@admin_app.route("/pagamento/<int:empresa_id>", methods=["GET"])
+def pagamento(empresa_id):
+    """Render the payment page for a specific company."""
+    user = session.get("user")
+    if not user or user.get("role") != "admin_delivery":
+        return redirect(url_for("auth.login"))
+
+    data_inicio = request.args.get("data_inicio")
+    data_fim = request.args.get("data_fim")
+
+    if data_inicio:
+        data_inicio = datetime.combine(
+            datetime.strptime(data_inicio, "%Y-%m-%d").date(),
+            time.min  # 00:00:00
+        )
+
+    if data_fim:
+        data_fim = datetime.combine(
+            datetime.strptime(data_fim, "%Y-%m-%d").date(),
+            time.max  # 23:59:59.999999
+        )
+
+    empresa = ConsultaDados.empresa_por_id(empresa_id)
+    pagamentos_raw = ConsultasDelivery.busca_pedidos_empresa(
+        empresa_id=empresa_id,
+        data_inicio=data_inicio,
+        data_fim=data_fim
+    )
+    pagamentos = []
+    for p in pagamentos_raw:
+        pagamentos.append({
+            "data": p["hora_pedido"].strftime("%d/%m/%Y"),
+            "endereco": p["endereco_entrega"],
+            "valor": f"R$ {float(p['valor']):.2f}".replace(".", ","),
+            "motoboy": p.get("motoboy_nome", "—")
+        })
+
+    if not empresa:
+        flash("Empresa não encontrada.", "danger")
+        return redirect(url_for("admin_app.delivery"))
+
+
+    return render_template("pages/delivery/pagamento.html", user=user, empresa=empresa, pagamentos=pagamentos)
