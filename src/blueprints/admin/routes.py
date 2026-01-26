@@ -197,6 +197,7 @@ def pagamento(empresa_id):
         pagamentos.append({
             "data": p["hora_pedido"].strftime("%d/%m/%Y"),
             "endereco": p["endereco_entrega"],
+            "status": p["status"],
             "valor": f"R$ {float(p['valor']):.2f}".replace(".", ","),
             "motoboy": p.get("motoboy_nome", "—")
         })
@@ -204,6 +205,5 @@ def pagamento(empresa_id):
     if not empresa:
         flash("Empresa não encontrada.", "danger")
         return redirect(url_for("admin_app.delivery"))
-
 
     return render_template("pages/delivery/pagamento.html", user=user, empresa=empresa, pagamentos=pagamentos)

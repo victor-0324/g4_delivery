@@ -4,96 +4,116 @@
 
 {% block content %}
 
-<div class="card shadow-sm border-0 overflow-hidden">
-    <div class="card-header  border-bottom">
-        <h4 class="card-title mb-0">Pagamentos - {{ empresa.nome }}</h4>
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-white border-bottom py-3">
+        <div class="d-flex align-items-center">
+            <div class="flex-shrink-0 bg-primary rounded-3 p-2 me-3">
+                <i class="bi bi-cash-stack text-white"></i>
+            </div>
+            <h5 class="card-title mb-0 fw-bold text-dark">
+                Pagamentos — <span class="text-primary">{{ empresa.nome }}</span>
+            </h5>
+        </div>
     </div>
-    <form method="GET" class="row g-3 align-items-end mb-4">
 
-        <div class="col-md-4">
-            <label class="form-label fw-semibold">Data inicial</label>
-            <input type="date"
-                name="data_inicio"
-                class="form-control"
-                value="{{ request.args.get('data_inicio', '') }}">
-        </div>
+    <div class="card-body bg-light-subtle border-bottom">
+        <form method="GET" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label small fw-bold text-uppercase text-muted">Data Inicial</label>
+                <input type="date" name="data_inicio" class="form-control form-control-sm border-0 shadow-sm" value="{{ request.args.get('data_inicio', '') }}">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label small fw-bold text-uppercase text-muted">Data Final</label>
+                <input type="date" name="data_fim" class="form-control form-control-sm border-0 shadow-sm" value="{{ request.args.get('data_fim', '') }}">
+            </div>
+            <div class="col-md-4 d-flex gap-2">
+                <button type="submit" class="btn btn-primary btn-sm w-100 fw-bold shadow-sm">
+                    <i class="bi bi-search me-1"></i> Filtrar
+                </button>
+                <a href="{{ url_for('admin_app.pagamento', empresa_id=empresa.id) }}" class="btn btn-outline-secondary btn-sm w-100 fw-bold shadow-sm">
+                    Limpar
+                </a>
+            </div>
+        </form>
+    </div>
 
-        <div class="col-md-4">
-            <label class="form-label fw-semibold">Data final</label>
-            <input type="date"
-                name="data_fim"
-                class="form-control"
-                value="{{ request.args.get('data_fim', '') }}">
-        </div>
+    <div class="table-responsive">
+        <table id="tabela-pagamentos" class="table table-hover align-middle mb-0">
+            <thead class="bg-light">
+                <tr>
+                    <th class="border-0 text-uppercase small fw-bold py-3 ps-4" style="color: #6c757d;">Endereço</th>
+                    <th class="border-0 text-uppercase small fw-bold py-3 text-center" style="color: #6c757d;">Valor</th>
+                    <th class="border-0 text-uppercase small fw-bold py-3 text-center" style="color: #6c757d;">Status</th>
+                    <th class="border-0 text-uppercase small fw-bold py-3 text-center" style="color: #6c757d;">Responsável</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% set data_atual = None %}
+                {% for p in pagamentos %}
 
-        <div class="col-md-4 d-flex gap-2">
-            <button type="submit" class="btn btn-primary w-100">
-                🔍 Buscar
-            </button>
-
-            <a href="{{ url_for('admin_app.pagamento', empresa_id=empresa.id) }}"
-                class="btn btn-outline-secondary w-100">
-                Limpar
-            </a>
-        </div>
-
-    </form>
-
-    <table id="tabela-pagamentos" class="table table-hover align-middle mb-0">
-
-        <thead class="table-dark text-center">
-            <tr>
-                <th class="text-uppercase small fw-bold py-3 ps-4 text-start">Endereço</th>
-                <th class="text-uppercase small fw-bold py-3">Valor</th>
-                <th class="text-uppercase small fw-bold py-3">Motoboy Responsável</th>
-            </tr>
-        </thead>
-
-        <tbody>
-
-            {% set data_atual = None %}
-
-            {% for p in pagamentos %}
-
-                {# ---- QUEBRA POR DATA ---- #}
-                {% if p.data != data_atual %}
-                    <tr class="table-secondary">
-                        <td colspan="3" class="fw-bold text-secondary text-center small text-uppercase py-2 letter-spacing-1">
-                            📅 {{ p.data }}
+                    {# Divisor de Data Estilizado #}
+                    {% if p.data != data_atual %}
+                    <tr class="bg-light-subtle">
+                        <td colspan="4" class="py-2 ps-4">
+                            <span class="badge rounded-pill bg-secondary bg-opacity-10 text-secondary fw-bold">
+                                <i class="bi bi-calendar3 me-1"></i> {{ p.data }}
+                            </span>
                         </td>
                     </tr>
                     {% set data_atual = p.data %}
-                {% endif %}
+                    {% endif %}
 
-                <tr>
-                    <td class="text-start ps-4 py-3">
-                        <span class="d-block fw-semibold text-dark">
-                            {{ p.endereco or '-' }}
-                        </span>
-                    </td>
+                    <tr>
+                        <td class="ps-4 py-3">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-geo-alt text-muted me-2"></i>
+                                <span class="fw-medium text-dark">{{ p.endereco or 'Não informado' }}</span>
+                            </div>
+                        </td>
 
-                    <td class="text-center">
-                        <span class="fw-bold text-success fs-6">
+                        <td class="text-center">
+                            <span class="fw-bold text-dark">
                             {{ p.valor }}
-                        </span>
-                    </td>
-
-                    <td class="text-center">
-                        {% if p.motoboy %}
-                            <span class="fw-bold text-secondary text-uppercase small">
-                                <i class="bi bi-person-fill"></i> {{ p.motoboy }}
                             </span>
-                        {% else %}
-                            <span class="text-muted small">—</span>
-                        {% endif %}
-                    </td>
-                </tr>
+                        </td>
 
-            {% endfor %}
+                        <td class="text-center">
+                            {% if p.status == 'aceito' %}
+                                <span class="badge rounded-pill bg-success bg-opacity-10 text-success px-3">
+                                    <i class="bi bi-check-circle-fill me-1"></i> ACEITO
+                                </span>
+                            {% elif p.status == 'pendente' %}
+                                <span class="badge rounded-pill bg-warning bg-opacity-10 text-warning px-3">
+                                    <i class="bi bi-hourglass-split me-1"></i> PENDENTE
+                                </span>
+                            {% else %}
+                                <span class="badge rounded-pill bg-secondary bg-opacity-10 text-secondary px-3">
+                                    {{ p.status|upper }}
+                                </span>
+                            {% endif %}
+                        </td>
 
-        </tbody>
-    </table>
+                        <td class="text-center">
+                            {% if p.motoboy %}
+                                <div class="d-inline-flex align-items-center bg-light rounded-pill px-2 py-1">
+                                    <div class="bg-white rounded-circle shadow-sm d-flex align-items-center justify-content-center me-2" style="width: 24px; height: 24px;">
+                                        <i class="bi bi-person small text-primary"></i>
+                                    </div>
+                                    <span class="small fw-semibold text-muted text-uppercase" style="font-size: 0.75rem;">
+                                        {{ p.motoboy }}
+                                    </span>
+                                </div>
+                            {% else %}
+                                <span class="text-muted small">---</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
+
 
 
 {% endblock content %}
