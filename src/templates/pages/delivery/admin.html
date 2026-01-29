@@ -3,124 +3,131 @@
 {% block title %}Empresas cadastradas {% endblock title %}
 
 {% block content %}
- <div class="row">
-    <div class="col-12">
-        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
-            <h4 class="mb-sm-0">Fila Dos Motoboys </h4>
+
+    <div class="card">
+        <div class="card-body p-0">
+            <table class="table align-middle table-nowrap mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th scope="col">Empresa</th>
+                        <th scope="col">Telefone</th>
+                        <th scope="col">Endereço</th>
+                        <th scope="col">Crédito</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Ações</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for emp in empresas %}
+
+                    <tr>
+                        <td>
+                            <strong>{{ emp.nome }}</strong>
+                        </td>
+
+                        <td>{{ emp.telefone }}</td>
+
+                        <td>{{ emp.endereco }}</td>
+
+                        <td>R$ {{ "%.2f"|format(emp.credito) }}</td>
+
+                        <td>
+                            {% if emp.status == "ativo" %}
+                                <a href="javascript:void(0);" class="link-success">Ativo</a>
+                            {% else %}
+                                <a href="javascript:void(0);" class="link-danger">desativado</a>
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            <!-- Barra de progresso só pra estilo
+                            <div class="progress progress-sm mb-2" style="width: 120px;">
+                                <div class="progress-bar bg-success" role="progressbar"
+                                    style="width: 100%"></div>
+                            </div>-->
+                            <button
+                                class="btn btn-primary btn-sm"
+                                onclick="abrirModalEditar(this)"
+                                data-id="{{ emp.id }}"
+                                data-nome="{{ emp.nome }}"
+                                data-telefone="{{ emp.telefone }}"
+                                data-endereco="{{ emp.endereco }}"
+                                data-credito="{{ emp.credito }}"
+                                data-ativo="{{ 'true' if emp.ativo else 'false' }}">
+                                Editar
+                            </button>
+                        </td>
+                    </tr>
+
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
-</div>
-
-
-<!--end row-->
-<div class="table-responsive">
-    <table class="table table-striped align-middle">
-        <thead class="table-light">
-            <tr>
-                <th>Posição</th>
-                <th>Nome</th>
-                <!-- <th>Endereço</th>-->
-                <th>Hora Livre</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for motorista in fila %}
-            <tr {% if loop.index == 1 %}class="table-primary"{% endif %}>
-                <td>
-                    {% if loop.index == 1 %}
-                        <span class="badge bg-primary">Próximo</span>
-                    {% else %}
-                        {{ loop.index }}
-                    {% endif %}
-                </td>
-
-                <td title="{{ motorista.nome }}">
-                    {{ motorista.nome[:25] }}{{ '...' if motorista.nome|length > 25 else '' }}
-                </td>
-
-               <!-- <td title="{{ motorista.endereco }}">
-                    {{ motorista.endereco|default('')|truncate(25, True, '...') }}
-
-                </td>-->
-
-                <td>
-                    {% if motorista.hora_livre %}
-                        {{ motorista.hora_livre.strftime('%d/%m/%Y, %H:%M:%S') }}
-                    {% else %}
-                        Não registrado
-                    {% endif %}
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
-<br>
-<div class="card">
-    <div class="card-body p-0">
-        <table class="table align-middle table-nowrap mb-0">
-            <thead class="table-light">
-                <tr>
-                    <th scope="col">Empresa</th>
-                    <th scope="col">Telefone</th>
-                    <th scope="col">Endereço</th>
-                    <th scope="col">Crédito</th>
-                    <th scope="col">Status</th>
-                    <th scope="col">Ações</th>
-                </tr>
-            </thead>
-
-            <tbody>
-                {% for emp in empresas %}
-
-                <tr>
-                    <td>
-                        <strong>{{ emp.nome }}</strong>
-                    </td>
-
-                    <td>{{ emp.telefone }}</td>
-
-                    <td>{{ emp.endereco }}</td>
-
-                    <td>R$ {{ "%.2f"|format(emp.credito) }}</td>
-
-                    <td>
-                        {% if emp.status == "ativo" %}
-                            <a href="javascript:void(0);" class="link-success">Ativo</a>
-                        {% else %}
-                            <a href="javascript:void(0);" class="link-danger">desativado</a>
-                        {% endif %}
-                    </td>
-
-                    <td>
-                        <!-- Barra de progresso só pra estilo
-                        <div class="progress progress-sm mb-2" style="width: 120px;">
-                            <div class="progress-bar bg-success" role="progressbar"
-                                style="width: 100%"></div>
-                        </div>-->
-                        <button
-                            class="btn btn-primary btn-sm"
-                            onclick="abrirModalEditar(this)"
-                            data-id="{{ emp.id }}"
-                            data-nome="{{ emp.nome }}"
-                            data-telefone="{{ emp.telefone }}"
-                            data-endereco="{{ emp.endereco }}"
-                            data-credito="{{ emp.credito }}"
-                            data-ativo="{{ 'true' if emp.ativo else 'false' }}">
-                            Editar
-                        </button>
-                    </td>
-                </tr>
-
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-</div>
 
 {% endblock content %}
 
 {% block extra_content %}
+<div class="modal fade" id="modalFilaMotoboys" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Fila dos Motoboys</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <div class="table-responsive">
+                    <table class="table table-striped align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Posição</th>
+                                <th>Nome</th>
+                                <th>Hora Livre</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for motorista in fila %}
+                            <tr {% if loop.index == 1 %}class="table-primary"{% endif %}>
+                                <td>
+                                    {% if loop.index == 1 %}
+                                        <span class="badge bg-primary">Próximo</span>
+                                    {% else %}
+                                        {{ loop.index }}
+                                    {% endif %}
+                                </td>
+
+                                <td title="{{ motorista.nome }}">
+                                    {{ motorista.nome[:25] }}{{ '...' if motorista.nome|length > 25 else '' }}
+                                </td>
+
+                                <td>
+                                    {% if motorista.hora_livre %}
+                                        {{ motorista.hora_livre.strftime('%d/%m/%Y, %H:%M:%S') }}
+                                    {% else %}
+                                        Não registrado
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    Fechar
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
 
 <div class="modal fade" id="modalEditarEmpresa" tabindex="-1">
     <div class="modal-dialog">

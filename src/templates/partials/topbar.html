@@ -39,31 +39,40 @@
                     </button>
                     <div class="dropdown-menu dropdown-menu-end">
                         <h6 class="dropdown-header">Bem vindo, {{ user.nome }}!</h6>
-
+                            <a class="dropdown-item" href="/admin/delivery">
+                                <i class="mdi mdi-storefront text-muted fs-lg align-middle me-1"></i>
+                                <span class="align-middle">Inicio </span>
+                            </a>
                          <!-- Divisor -->
                         <div class="dropdown-divider"></div>
 
                         <!-- Item exclusivo para admin -->
                         {% if user.role == 'admin_delivery' %}
-                            <a class="dropdown-item" href="/admin/delivery">
-                                <i class="mdi mdi-storefront text-muted fs-lg align-middle me-1"></i>
-                                <span class="align-middle">Inicio </span>
-                            </a>
-                            <a class="dropdown-item" href="/g4delivery/cadastrar_motoboy">
+
+                            {% if request.path == '/admin/delivery' %}
+                            <button type="button"
+                                    class="dropdown-item d-flex align-items-center"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#modalFilaMotoboys">
                                 <i class="mdi mdi-motorbike text-muted fs-lg align-middle me-1"></i>
-                                <span class="align-middle">Cadastrar Motoboy</span>
-                            </a>
-                            <a class="dropdown-item" href="/g4delivery/cadastrar_empresa">
-                                <i class="mdi mdi-store text-muted fs-lg align-middle me-1"></i>
-                                <span class="align-middle">Cadastrar Empresa</span>
-                            </a>
-                            <a class="dropdown-item" href="/admin/motoboys">
-                                <i class="mdi mdi-bike text-muted fs-lg align-middle me-1"></i>
-                                <span class="align-middle">Ver Motoboys</span>
+                                <span class="align-middle">Ver fila dos motoboys</span>
+                            </button>
+                            {% endif %}
+
+                           <a class="dropdown-item d-flex align-items-center" href="/admin/motoboys">
+                                <i class="mdi mdi-account-multiple-outline text-muted fs-lg me-2"></i>
+                                <span>Ver Motoboys</span>
                             </a>
 
+                            <a class="dropdown-item d-flex align-items-center" href="/g4delivery/cadastrar_motoboy">
+                                <i class="mdi mdi-account-plus-outline text-muted fs-lg me-2"></i>
+                                <span>Cadastrar Motoboy</span>
+                            </a>
 
-
+                            <a class="dropdown-item d-flex align-items-center" href="/g4delivery/cadastrar_empresa">
+                                <i class="mdi mdi-domain-plus text-muted fs-lg me-2"></i>
+                                <span>Cadastrar Empresa</span>
+                            </a>
 
                         <div class="dropdown-divider"></div>
 
