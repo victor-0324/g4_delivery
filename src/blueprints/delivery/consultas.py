@@ -261,6 +261,17 @@ class ConsultasDelivery:
 
     @classmethod
     @db_connector
+    def busca_motoboy_id(cls, connection, motoboy_id):
+        """Busca motoboy pelo id"""
+        motoboy = (
+            connection.session.query(G4DeliveryMotoboy)
+            .filter_by(id=motoboy_id)
+            .first()
+        )
+        return motoboy.to_dict() if motoboy else None
+
+    @classmethod
+    @db_connector
     def buscar_por_cpf(cls, connection, cpf):
         """Busca motoboy pelo cpf"""
         motoboy = connection.session.query(G4DeliveryMotoboy).filter_by(cpf=cpf).first()

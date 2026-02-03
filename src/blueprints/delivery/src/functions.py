@@ -88,8 +88,56 @@ def progresso_para_proxima(total):
         return int(((total - 80) / 70) * 100)
     return 100
 
-
 def inicio_semana_atual():
     agora = datetime.now()
     inicio_semana = agora - timedelta(days=agora.weekday())
     return inicio_semana.replace(hour=0, minute=0, second=0, microsecond=0)
+
+def ajusta_pedidos(todos_pedidos):
+    """Adiciona o nome do motoboy em cada pedido, se houver motoboy associado."""
+    ids_motoboys = {
+    pedido["motoboy_id"]
+    for pedido in todos_pedidos
+    if pedido.get("motoboy_id")
+    }
+    motoboys = [
+        ConsultasDelivery.busca_motoboy_id(motoboy_id)
+        for motoboy_id in ids_motoboys
+    ]
+    mapa_motoboys = {
+        motoboy["id"]: motoboy["nome"]
+        for motoboy in motoboys
+    }
+    for pedido in todos_pedidos:
+        pedido["motoboy_nome"] = mapa_motoboys.get(
+            pedido.get("motoboy_id"),
+            "—"
+        )
+
+    return todos_pedidos
+
+
+def resumo_faturamento(pedidos):
+    """Gera um resumo do faturamento a partir da lista de pedidos."""
+    from decimal import Decimal
+
+    total_pedidos = len(pedidos)
+
+    pedidos_pendentes = sum(
+        1 for p in pedidos if p.get("status") == "pendente"
+    )
+
+    pedidos_cancelados = sum(
+        1 for p in pedidos if p.get("status") == "cancelado"
+    )
+
+    valor_total = sum(
+        (p.get("valor") or Decimal("0.00")) for p in pedidos
+    )
+
+    return {
+        "total_pedidos": total_pedidos,
+        "pedidos_pendentes": pedidos_pendentes,
+        "pedidos_cancelados": pedidos_cancelados,
+        "valor_total": valor_total
+    }

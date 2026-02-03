@@ -11,7 +11,7 @@ from flask import (
 )
 from ..delivery.consultas import ConsultasDelivery
 from .src.functions import verificar_usuarios
-from .src.functions import fila_motoristas, get_medalha, progresso_para_proxima, inicio_semana_atual
+from .src.functions import fila_motoristas, resumo_faturamento, get_medalha, progresso_para_proxima, inicio_semana_atual, ajusta_pedidos
 from src.database.querys import UserQuerys
 from flask_login import login_required
 from .pdf_html import format_number
@@ -40,20 +40,69 @@ def public_endpoint(function):
 @login_required
 @delivery_app.route("/", methods=["GET"])
 def painel_empresa():
-    """panel das empresas"""
     user = session.get("user")
     if user["role"] != "empresa_delivery":
         return redirect(url_for("auth.login"))
 
     empresa = ConsultasDelivery.busca_empresas(user["nome"])
 
-    todos_pedidos = ConsultasDelivery.busca_pedidos_empresa(empresa["id"])
+    pedidos = ConsultasDelivery.busca_pedidos_empresa(empresa["id"])
+    pedidos = ajusta_pedidos(pedidos)
+
+    motoboy_filtro = request.args.get("motoboy")
+    data_inicio = request.args.get("data_inicio")
+    data_fim = request.args.get("data_fim")
+
+    # =========================
+    # FILTRO POR MOTOBOY
+    # =========================
+    if motoboy_filtro:
+        pedidos = [
+            p for p in pedidos
+            if p.get("motoboy_nome")
+            and motoboy_filtro.lower() in p["motoboy_nome"].lower()
+        ]
+
+    # =========================
+    # FILTRO DATA INÍCIO
+    # =========================
+    if data_inicio:
+        data_inicio = datetime.strptime(
+            data_inicio.strip(),
+            "%Y-%m-%d"
+        )
+        pedidos = [
+            p for p in pedidos
+            if p.get("hora_pedido") and p["hora_pedido"] >= data_inicio
+        ]
+
+    # =========================
+    # FILTRO DATA FIM
+    # =========================
+    if data_fim:
+        data_fim = datetime.strptime(
+            data_fim.strip(),
+            "%Y-%m-%d"
+        ).replace(hour=23, minute=59, second=59)
+        pedidos = [
+            p for p in pedidos
+            if p.get("hora_pedido") and p["hora_pedido"] <= data_fim
+        ]
+
+    # =========================
+    # RESUMO
+    # =========================
+    resumo = resumo_faturamento(pedidos)
 
     return render_template(
         "pages/delivery/painel_empresa.html",
         user=user,
-        pedidos=todos_pedidos,
         empresa=empresa,
+        pedidos=pedidos,  # ✅ agora correto
+        total_pedidos=resumo["total_pedidos"],
+        pedidos_pendentes=resumo["pedidos_pendentes"],
+        pedidos_cancelados=resumo["pedidos_cancelados"],
+        valor_total=resumo["valor_total"],
     )
 
 
