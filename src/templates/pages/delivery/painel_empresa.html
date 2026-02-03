@@ -117,6 +117,11 @@
            name="data_inicio"
            class="form-control"
            value="{{ request.args.get('data_inicio','') }}">
+            <div class="mb-1">
+      <span class="badge bg-light text-secondary border">
+       Selecionada {{ data_inicio }}
+      </span>
+    </div>
   </div>
 
   <!-- Data final -->
@@ -126,6 +131,11 @@
            name="data_fim"
            class="form-control"
            value="{{ request.args.get('data_fim','') }}">
+              <div class="mb-1">
+        <span class="badge bg-light text-secondary border">
+        Selecionada {{ data_fim }}
+        </span>
+        </div>
   </div>
 
   <!-- Botão -->

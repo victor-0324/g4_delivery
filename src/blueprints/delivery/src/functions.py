@@ -132,7 +132,7 @@ def resumo_faturamento(pedidos):
     )
 
     valor_total = sum(
-        (p.get("valor") or Decimal("0.00")) for p in pedidos
+        (p.get("valor") or Decimal("0.00")) for p in pedidos if p.get("status") == "aceito"
     )
 
     return {

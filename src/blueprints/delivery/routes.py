@@ -53,9 +53,6 @@ def painel_empresa():
     data_inicio = request.args.get("data_inicio")
     data_fim = request.args.get("data_fim")
 
-    # =========================
-    # FILTRO POR MOTOBOY
-    # =========================
     if motoboy_filtro:
         pedidos = [
             p for p in pedidos
@@ -63,9 +60,6 @@ def painel_empresa():
             and motoboy_filtro.lower() in p["motoboy_nome"].lower()
         ]
 
-    # =========================
-    # FILTRO DATA INÍCIO
-    # =========================
     if data_inicio:
         data_inicio = datetime.strptime(
             data_inicio.strip(),
@@ -76,9 +70,6 @@ def painel_empresa():
             if p.get("hora_pedido") and p["hora_pedido"] >= data_inicio
         ]
 
-    # =========================
-    # FILTRO DATA FIM
-    # =========================
     if data_fim:
         data_fim = datetime.strptime(
             data_fim.strip(),
@@ -88,21 +79,27 @@ def painel_empresa():
             p for p in pedidos
             if p.get("hora_pedido") and p["hora_pedido"] <= data_fim
         ]
-
-    # =========================
-    # RESUMO
-    # =========================
+    if not data_inicio and not data_fim:
+        inicio_semana = inicio_semana_atual()
+        pedidos = [
+            p for p in pedidos
+            if p.get("hora_pedido") and p["hora_pedido"] >= inicio_semana
+        ]
+        data_inicio = inicio_semana.strftime("%d/%m/%Y")
+        data_fim = datetime.now().strftime("%d/%m/%Y")
     resumo = resumo_faturamento(pedidos)
 
     return render_template(
         "pages/delivery/painel_empresa.html",
         user=user,
         empresa=empresa,
-        pedidos=pedidos,  # ✅ agora correto
+        pedidos=pedidos,
         total_pedidos=resumo["total_pedidos"],
         pedidos_pendentes=resumo["pedidos_pendentes"],
         pedidos_cancelados=resumo["pedidos_cancelados"],
         valor_total=resumo["valor_total"],
+        data_inicio=data_inicio,
+        data_fim=data_fim,
     )
 
 
